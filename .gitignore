@@ -1,0 +1,9 @@
+.python-version
+.pytest_cache
+.DS_Store
+.tox
+.vscode
+*.egg-info
+dev.ipynb
+.ipynb_checkpoints
+*.pyc
