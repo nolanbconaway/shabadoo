@@ -22,8 +22,14 @@ jobs:
       - name: Install Dependencies
         run: |
           pip install --upgrade pip
-          pip install black pytest pytest-cov codecov
-          python setup.py develop
+
+          # test deps
+          pip install --upgrade black pytest pytest-cov codecov
+
+          # install deps manually bc pypi numpyro is too strict.
+          pip install --upgrade jax jaxlib numpyro tqdm pandas
+          pip install git+https://github.com/pyro-ppl/numpyro --no-deps
+          python setup.py develop --no-deps
 
       - name: Lint with Black
         run: black . --check --verbose

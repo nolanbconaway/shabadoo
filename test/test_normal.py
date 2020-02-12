@@ -9,6 +9,7 @@ import numpy as onp
 import numpyro
 import pandas as pd
 import pytest
+from numpyro import distributions as dist
 
 from shabadoo import Normal
 
@@ -23,13 +24,7 @@ def test_single_coef_is_about_right():
 
     class Model(Normal):
         dv = "y"
-        features = dict(
-            mu=dict(
-                transformer=1,
-                prior_dist="Normal",
-                prior_kwgs={"loc": 0.0, "scale": 5.0},
-            ),
-        )
+        features = dict(mu=dict(transformer=1, prior=dist.Normal(0, 5)))
 
     model = Model().fit(df, num_warmup=200, num_samples=500, progress_bar=False)
     avg_x_coef = model.samples_df.describe()["mu"]["mean"]
@@ -47,9 +42,7 @@ def test_prediction_with_assumed_samples(monkeypatch):
     # model will not be fit so dont need to set much.
     class Model(Normal):
         dv = "y"
-        features = dict(
-            x=dict(transformer=lambda x: x.x, prior_dist="Normal", prior_kwgs={})
-        )
+        features = dict(x=dict(transformer=lambda x: x.x, prior=dist.Normal(0, 1)))
 
     # monkeypatch fitted samples
     fake_samples = {"x": np.array([1.0]), "_sigma": np.array([0])}
@@ -74,7 +67,7 @@ def test_no_dv_exception():
     """Test the exception when dv is not defined."""
 
     class Model(Normal):
-        features = dict(x=dict(transformer=1, prior_dist="Normal", prior_kwgs={}))
+        features = dict(x=dict(transformer=1, prior=dist.Normal(0, 1)))
 
     with pytest.raises(TypeError):
         Model()
@@ -85,18 +78,7 @@ def test_incomplete_feature_exception():
 
     class Model(Normal):
         dv = "y"
-        features = dict(x=dict(transformer=1, prior_kwgs={}))
-
-    with pytest.raises(ValueError):
-        Model()
-
-
-def test_invalid_prior_exception():
-    """Test the exception when a prior is invalid."""
-
-    class Model(Normal):
-        dv = "y"
-        features = dict(x=dict(transformer=1, prior_dist="NOPE", prior_kwgs={}))
+        features = dict(x=dict(transformer=1))
 
     with pytest.raises(ValueError):
         Model()
@@ -108,10 +90,8 @@ def test_transform():
     class Model(Normal):
         dv = "y"
         features = dict(
-            one=dict(transformer=1, prior_dist="Normal", prior_kwgs={}),
-            x_sq=dict(
-                transformer=lambda x: x.x ** 2, prior_dist="Normal", prior_kwgs={}
-            ),
+            one=dict(transformer=1, prior=dist.Normal(0, 1)),
+            x_sq=dict(transformer=lambda x: x.x ** 2, prior=dist.Normal(0, 1)),
         )
 
     df = pd.DataFrame(dict(x=[1, 2, 3], y=1))
@@ -125,9 +105,7 @@ def test_from_samples_predict():
 
     class Model(Normal):
         dv = "y"
-        features = dict(
-            x=dict(transformer=lambda x: x.x, prior_dist="Normal", prior_kwgs={})
-        )
+        features = dict(x=dict(transformer=lambda x: x.x, prior=dist.Normal(0, 1)))
 
     samples = {
         "x": onp.array([1.0]),
@@ -144,9 +122,7 @@ def test_formula():
 
     class Model(Normal):
         dv = "y"
-        features = dict(
-            x=dict(transformer=lambda x: x.x, prior_dist="Normal", prior_kwgs={},)
-        )
+        features = dict(x=dict(transformer=lambda x: x.x, prior=dist.Normal(0, 1)))
 
     model = Model().from_samples(samples)
     formula = model.formula

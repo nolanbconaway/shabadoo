@@ -19,8 +19,7 @@ dictionaries like
 {
     'log_x': {
         'transformer': lambda df: np.log(df.x),    # .assign() call on DataFrame
-        'prior_dist': 'Normal',                    # numpyro distribution name
-        'prior_kwgs': {'loc': 0.0, 'scale': 2.0}   # passed to prior dist function
+        'prior': dist.Normal(0.0, 1.0),            # numpyro distribution
     }
 }
 """
@@ -68,14 +67,9 @@ class BaseModel(ABC):
             raise TypeError("No dv defined!")
 
         for name, feature in self.features.items():
-            for key in ("transformer", "prior_dist", "prior_kwgs"):
+            for key in ("transformer", "prior"):
                 if key not in feature:
                     raise ValueError(f"Feature {name} does not have config {key}!")
-
-            if not hasattr(dist, feature["prior_dist"]):
-                raise ValueError(
-                    f"Invalid prior_dist {feature['prior_dist']} for feature {key}!"
-                )
 
         # this will be split each time randomness is needed.
         self.rand_key = random.PRNGKey(randint(0, 10000))
@@ -102,9 +96,7 @@ class BaseModel(ABC):
         """Define and return samples from the model."""
         inputs = self.transform(df)
         coefs = {
-            feature_name: numpyro.sample(
-                feature_name, getattr(dist, data["prior_dist"])(**data["prior_kwgs"])
-            )
+            feature_name: numpyro.sample(feature_name, data["prior"])
             for feature_name, data in self.features.items()
         }
 
@@ -175,15 +167,13 @@ class BaseModel(ABC):
         pass
 
     @require_fitted
-    def predict(self, df: pd.DataFrame) -> pd.Series:
+    def predict(self, df: pd.DataFrame, split_key: bool = True) -> pd.Series:
         """Obtain average predictions from the posterior predictive."""
-        # remove dv, not needed for predict
-        _df = df if self.dv not in df.columns else df.drop(columns=self.dv)
 
         # make array
-        pred = infer.Predictive(self.model, self.samples)(
-            self.split_rand_key(), df=_df
-        )[self.dv].mean(axis=0)
+        pred = infer.Predictive(self.model, self.samples)(self.split_rand_key(), df=df)[
+            self.dv
+        ].mean(axis=0)
 
         # return a series with a good index.
         return pd.Series(pred, index=df.index, name=self.dv)

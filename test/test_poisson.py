@@ -2,6 +2,7 @@
 
 import numpy as onp
 import pandas as pd
+from numpyro import distributions as dist
 
 from shabadoo import Poisson
 
@@ -17,13 +18,7 @@ def test_single_coef_is_about_right():
 
     class Model(Poisson):
         dv = "y"
-        features = dict(
-            mu=dict(
-                transformer=1,
-                prior_dist="Normal",
-                prior_kwgs={"loc": 0.0, "scale": 5.0},
-            ),
-        )
+        features = dict(mu=dict(transformer=1, prior=dist.Normal(0, 5)),)
 
     model = Model().fit(df, num_warmup=200, num_samples=500, progress_bar=False)
     avg_coef = model.samples_df.describe()["mu"]["mean"]
@@ -37,9 +32,7 @@ def test_formula():
 
     class Model(Poisson):
         dv = "y"
-        features = dict(
-            x=dict(transformer=lambda x: x.x, prior_dist="Normal", prior_kwgs={},)
-        )
+        features = dict(x=dict(transformer=lambda x: x.x, prior=dist.Normal(0, 10)))
 
     model = Model().from_samples(samples)
     formula = model.formula

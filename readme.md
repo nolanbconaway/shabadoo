@@ -26,3 +26,5 @@ shabadoo runs on [numpyro](http://num.pyro.ai/) and is basically a wrapper aroun
 - [ ] Validate dv range in pre_fit 
 - [ ] pymc3-like visualization of sampler result
 - [ ] store model fit metrics on .fit() call
+- [ ] do we really need to remove the dv col in predict?
+- [ ] deterministic predict. i.e., don't change the key.

@@ -2,6 +2,7 @@
 
 import numpy as onp
 import pandas as pd
+from numpyro import distributions as dist
 
 from shabadoo import Bernoulli
 
@@ -22,13 +23,7 @@ def test_single_coef_is_about_right_boolean():
 
     class Model(Bernoulli):
         dv = "y"
-        features = dict(
-            mu=dict(
-                transformer=1,
-                prior_dist="Normal",
-                prior_kwgs={"loc": 0.0, "scale": 10.0},
-            ),
-        )
+        features = dict(mu=dict(transformer=1, prior=dist.Normal(0, 10)),)
 
     model = Model().fit(df, num_warmup=200, num_samples=1000, progress_bar=False)
     avg_coef = model.samples_df.describe()["mu"]["mean"]
@@ -47,13 +42,7 @@ def test_single_coef_is_about_right_fractional():
 
     class Model(Bernoulli):
         dv = "y"
-        features = dict(
-            mu=dict(
-                transformer=1,
-                prior_dist="Normal",
-                prior_kwgs={"loc": 0.0, "scale": 10.0},
-            ),
-        )
+        features = dict(mu=dict(transformer=1, prior=dist.Normal(0, 10)),)
 
     model = Model().fit(df, num_warmup=200, num_samples=1000, progress_bar=False)
     avg_coef = model.samples_df.describe()["mu"]["mean"]
@@ -67,9 +56,7 @@ def test_formula():
 
     class Model(Bernoulli):
         dv = "y"
-        features = dict(
-            x=dict(transformer=lambda x: x.x, prior_dist="Normal", prior_kwgs={},)
-        )
+        features = dict(x=dict(transformer=lambda x: x.x, prior=dist.Normal(0, 1)))
 
     model = Model().from_samples(samples)
     formula = model.formula
