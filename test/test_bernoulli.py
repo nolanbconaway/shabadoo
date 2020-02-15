@@ -1,8 +1,8 @@
 """Test the poisson model."""
-
 import numpy as onp
 import pandas as pd
 from numpyro import distributions as dist
+from scipy.special import expit, logit
 
 from shabadoo import Bernoulli
 
@@ -62,3 +62,33 @@ def test_formula():
     formula = model.formula
     expected = "y = logistic(\n\tx * 1.00000(+-0.00000)\n)"
     assert formula == expected
+
+
+def test_sample_posterior_predictive():
+    """Test that sample ppd makes sense when init from samples."""
+    df = pd.DataFrame(dict(x=[-1, 0, 1, 2]))
+
+    class Model(Bernoulli):
+        dv = "y"
+        features = dict(x=dict(transformer=lambda x: x.x, prior=dist.Normal(0, 1)))
+
+    samples = {"x": onp.array([1.0] * 10000000)}
+    model = Model().from_samples(samples)
+    pred = model.sample_posterior_predictive(df)
+    logit_pred = logit(pred).round(2)
+    assert df.x.astype("float32").equals(logit_pred.astype("float32"))
+
+
+def test_predict():
+    """Test that predict makes sense when init from samples."""
+    df = pd.DataFrame(dict(x=[-1, 0, 1, 2]))
+
+    class Model(Bernoulli):
+        dv = "y"
+        features = dict(x=dict(transformer=lambda x: x.x, prior=dist.Normal(0, 1)))
+
+    samples = {"x": onp.array([1.0] * 10000000)}
+    model = Model().from_samples(samples)
+    pred = model.predict(df)
+    logit_pred = logit(pred).round(2)
+    assert df.x.astype("float32").equals(logit_pred.astype("float32"))

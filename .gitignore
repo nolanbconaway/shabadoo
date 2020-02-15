@@ -7,3 +7,5 @@
 dev.ipynb
 .ipynb_checkpoints
 *.pyc
+build/
+docs/img
