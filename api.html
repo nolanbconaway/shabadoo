@@ -51,7 +51,7 @@
 <dd><p>Gaussian/normal family model for the generic regression model.</p>
 <dl class="method">
 <dt id="shabadoo.Normal.fit">
-<code class="sig-name descname">fit</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">df: pandas.core.frame.DataFrame</em>, <em class="sig-param">sampler: str = 'NUTS'</em>, <em class="sig-param">**mcmc_kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#shabadoo.Normal.fit" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">fit</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">df:pandas.core.frame.DataFrame</em>, <em class="sig-param">sampler:str='NUTS'</em>, <em class="sig-param">**mcmc_kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#shabadoo.Normal.fit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Fit the model to a DataFrame.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -78,7 +78,7 @@
 
 <dl class="method">
 <dt id="shabadoo.Normal.from_samples">
-<em class="property">classmethod </em><code class="sig-name descname">from_samples</code><span class="sig-paren">(</span><em class="sig-param">samples: Dict[str, jax.numpy.lax_numpy.ndarray]</em><span class="sig-paren">)</span><a class="headerlink" href="#shabadoo.Normal.from_samples" title="Permalink to this definition">¶</a></dt>
+<em class="property">classmethod </em><code class="sig-name descname">from_samples</code><span class="sig-paren">(</span><em class="sig-param">samples:Dict[str, jax.numpy.lax_numpy.ndarray]</em><span class="sig-paren">)</span><a class="headerlink" href="#shabadoo.Normal.from_samples" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a pre-fitted model given its samples.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -95,7 +95,7 @@
 
 <dl class="method">
 <dt id="shabadoo.Normal.grouped_metrics">
-<code class="sig-name descname">grouped_metrics</code><span class="sig-paren">(</span><em class="sig-param">self, df: pandas.core.frame.DataFrame, groupby: Union[str, List[str]], aggfunc: Callable = &lt;function sum at 0x7fa6bf7d9680&gt;, aggerrs: bool = True</em><span class="sig-paren">)</span> &#x2192; Union[pandas.core.frame.DataFrame, Dict[str, float]]<a class="headerlink" href="#shabadoo.Normal.grouped_metrics" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">grouped_metrics</code><span class="sig-paren">(</span><em class="sig-param">self, df:pandas.core.frame.DataFrame, groupby:Union[str, List[str]], aggfunc:Callable=&lt;function sum at 0x7ff03e386a60&gt;, aggerrs:bool=True</em><span class="sig-paren">)</span> &#x2192; Union[pandas.core.frame.DataFrame, Dict[str, float]]<a class="headerlink" href="#shabadoo.Normal.grouped_metrics" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return grouped accuracy metrics.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -132,7 +132,7 @@ groupwise errors are returned as a DataFrame.</p>
 
 <dl class="method">
 <dt id="shabadoo.Normal.metrics">
-<code class="sig-name descname">metrics</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">df: pandas.core.frame.DataFrame</em>, <em class="sig-param">aggerrs: bool = True</em><span class="sig-paren">)</span> &#x2192; Union[pandas.core.frame.DataFrame, Dict[str, float]]<a class="headerlink" href="#shabadoo.Normal.metrics" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">metrics</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">df:pandas.core.frame.DataFrame</em>, <em class="sig-param">aggerrs:bool=True</em><span class="sig-paren">)</span> &#x2192; Union[pandas.core.frame.DataFrame, Dict[str, float]]<a class="headerlink" href="#shabadoo.Normal.metrics" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get prediction accuracy metrics of the model against data.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -155,7 +155,7 @@ pointwise errors are returned as a DataFrame.</p>
 
 <dl class="method">
 <dt id="shabadoo.Normal.model">
-<code class="sig-name descname">model</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">df: pandas.core.frame.DataFrame</em><span class="sig-paren">)</span><a class="headerlink" href="#shabadoo.Normal.model" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">model</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">df:pandas.core.frame.DataFrame</em><span class="sig-paren">)</span><a class="headerlink" href="#shabadoo.Normal.model" title="Permalink to this definition">¶</a></dt>
 <dd><p>Define and return samples from the model.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -172,13 +172,13 @@ pointwise errors are returned as a DataFrame.</p>
 
 <dl class="method">
 <dt id="shabadoo.Normal.pre_from_samples">
-<em class="property">classmethod </em><code class="sig-name descname">pre_from_samples</code><span class="sig-paren">(</span><em class="sig-param">samples: Dict[str, jax.numpy.lax_numpy.ndarray]</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/shabadoo/shabadoo.html#Normal.pre_from_samples"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#shabadoo.Normal.pre_from_samples" title="Permalink to this definition">¶</a></dt>
+<em class="property">classmethod </em><code class="sig-name descname">pre_from_samples</code><span class="sig-paren">(</span><em class="sig-param">samples:Dict[str, jax.numpy.lax_numpy.ndarray]</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/shabadoo/shabadoo.html#Normal.pre_from_samples"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#shabadoo.Normal.pre_from_samples" title="Permalink to this definition">¶</a></dt>
 <dd><p>Check for sigma before init from samples.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="shabadoo.Normal.predict">
-<code class="sig-name descname">predict</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">df: pandas.core.frame.DataFrame</em><span class="sig-paren">)</span> &#x2192; pandas.core.series.Series<a class="headerlink" href="#shabadoo.Normal.predict" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">predict</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">df:pandas.core.frame.DataFrame</em><span class="sig-paren">)</span> &#x2192; pandas.core.series.Series<a class="headerlink" href="#shabadoo.Normal.predict" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the average posterior prediction across all samples.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -195,7 +195,7 @@ pointwise errors are returned as a DataFrame.</p>
 
 <dl class="method">
 <dt id="shabadoo.Normal.sample_posterior_predictive">
-<code class="sig-name descname">sample_posterior_predictive</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">df: pandas.core.frame.DataFrame</em>, <em class="sig-param">hdpi: bool = False</em>, <em class="sig-param">hdpi_interval: float = 0.9</em><span class="sig-paren">)</span> &#x2192; Union[pandas.core.series.Series, pandas.core.frame.DataFrame]<a class="headerlink" href="#shabadoo.Normal.sample_posterior_predictive" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">sample_posterior_predictive</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">df:pandas.core.frame.DataFrame</em>, <em class="sig-param">hdpi:bool=False</em>, <em class="sig-param">hdpi_interval:float=0.9</em><span class="sig-paren">)</span> &#x2192; Union[pandas.core.series.Series, pandas.core.frame.DataFrame]<a class="headerlink" href="#shabadoo.Normal.sample_posterior_predictive" title="Permalink to this definition">¶</a></dt>
 <dd><p>Obtain samples from the posterior predictive.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -230,7 +230,7 @@ dataframe if HDPI is included.</p>
 
 <dl class="method">
 <dt id="shabadoo.Normal.split_rand_key">
-<code class="sig-name descname">split_rand_key</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">n: int = 1</em><span class="sig-paren">)</span> &#x2192; &lt;function PRNGKey at 0x7fa6b5a47e60&gt;<a class="headerlink" href="#shabadoo.Normal.split_rand_key" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">split_rand_key</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">n:int=1</em><span class="sig-paren">)</span> &#x2192; &lt;function PRNGKey at 0x7ff03487f378&gt;<a class="headerlink" href="#shabadoo.Normal.split_rand_key" title="Permalink to this definition">¶</a></dt>
 <dd><p>Split the random key, assign a new key and return the subkeys.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -247,7 +247,7 @@ dataframe if HDPI is included.</p>
 
 <dl class="method">
 <dt id="shabadoo.Normal.transform">
-<em class="property">classmethod </em><code class="sig-name descname">transform</code><span class="sig-paren">(</span><em class="sig-param">df: pandas.core.frame.DataFrame</em><span class="sig-paren">)</span> &#x2192; pandas.core.frame.DataFrame<a class="headerlink" href="#shabadoo.Normal.transform" title="Permalink to this definition">¶</a></dt>
+<em class="property">classmethod </em><code class="sig-name descname">transform</code><span class="sig-paren">(</span><em class="sig-param">df:pandas.core.frame.DataFrame</em><span class="sig-paren">)</span> &#x2192; pandas.core.frame.DataFrame<a class="headerlink" href="#shabadoo.Normal.transform" title="Permalink to this definition">¶</a></dt>
 <dd><p>Transform a dataframe for model input.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -270,7 +270,7 @@ dataframe if HDPI is included.</p>
 <dd><p>Logistic/bernoulli family model, for a binary response variable.</p>
 <dl class="method">
 <dt id="shabadoo.Bernoulli.fit">
-<code class="sig-name descname">fit</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">df: pandas.core.frame.DataFrame</em>, <em class="sig-param">sampler: str = 'NUTS'</em>, <em class="sig-param">**mcmc_kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#shabadoo.Bernoulli.fit" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">fit</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">df:pandas.core.frame.DataFrame</em>, <em class="sig-param">sampler:str='NUTS'</em>, <em class="sig-param">**mcmc_kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#shabadoo.Bernoulli.fit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Fit the model to a DataFrame.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -297,7 +297,7 @@ dataframe if HDPI is included.</p>
 
 <dl class="method">
 <dt id="shabadoo.Bernoulli.from_samples">
-<em class="property">classmethod </em><code class="sig-name descname">from_samples</code><span class="sig-paren">(</span><em class="sig-param">samples: Dict[str, jax.numpy.lax_numpy.ndarray]</em><span class="sig-paren">)</span><a class="headerlink" href="#shabadoo.Bernoulli.from_samples" title="Permalink to this definition">¶</a></dt>
+<em class="property">classmethod </em><code class="sig-name descname">from_samples</code><span class="sig-paren">(</span><em class="sig-param">samples:Dict[str, jax.numpy.lax_numpy.ndarray]</em><span class="sig-paren">)</span><a class="headerlink" href="#shabadoo.Bernoulli.from_samples" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a pre-fitted model given its samples.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -314,7 +314,7 @@ dataframe if HDPI is included.</p>
 
 <dl class="method">
 <dt id="shabadoo.Bernoulli.grouped_metrics">
-<code class="sig-name descname">grouped_metrics</code><span class="sig-paren">(</span><em class="sig-param">self, df: pandas.core.frame.DataFrame, groupby: Union[str, List[str]], aggfunc: Callable = &lt;function sum at 0x7fa6bf7d9680&gt;, aggerrs: bool = True</em><span class="sig-paren">)</span> &#x2192; Union[pandas.core.frame.DataFrame, Dict[str, float]]<a class="headerlink" href="#shabadoo.Bernoulli.grouped_metrics" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">grouped_metrics</code><span class="sig-paren">(</span><em class="sig-param">self, df:pandas.core.frame.DataFrame, groupby:Union[str, List[str]], aggfunc:Callable=&lt;function sum at 0x7ff03e386a60&gt;, aggerrs:bool=True</em><span class="sig-paren">)</span> &#x2192; Union[pandas.core.frame.DataFrame, Dict[str, float]]<a class="headerlink" href="#shabadoo.Bernoulli.grouped_metrics" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return grouped accuracy metrics.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -351,7 +351,7 @@ groupwise errors are returned as a DataFrame.</p>
 
 <dl class="method">
 <dt id="shabadoo.Bernoulli.metrics">
-<code class="sig-name descname">metrics</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">df: pandas.core.frame.DataFrame</em>, <em class="sig-param">aggerrs: bool = True</em><span class="sig-paren">)</span> &#x2192; Union[pandas.core.frame.DataFrame, Dict[str, float]]<a class="headerlink" href="#shabadoo.Bernoulli.metrics" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">metrics</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">df:pandas.core.frame.DataFrame</em>, <em class="sig-param">aggerrs:bool=True</em><span class="sig-paren">)</span> &#x2192; Union[pandas.core.frame.DataFrame, Dict[str, float]]<a class="headerlink" href="#shabadoo.Bernoulli.metrics" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get prediction accuracy metrics of the model against data.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -374,7 +374,7 @@ pointwise errors are returned as a DataFrame.</p>
 
 <dl class="method">
 <dt id="shabadoo.Bernoulli.model">
-<code class="sig-name descname">model</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">df: pandas.core.frame.DataFrame</em><span class="sig-paren">)</span><a class="headerlink" href="#shabadoo.Bernoulli.model" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">model</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">df:pandas.core.frame.DataFrame</em><span class="sig-paren">)</span><a class="headerlink" href="#shabadoo.Bernoulli.model" title="Permalink to this definition">¶</a></dt>
 <dd><p>Define and return samples from the model.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -391,14 +391,14 @@ pointwise errors are returned as a DataFrame.</p>
 
 <dl class="method">
 <dt id="shabadoo.Bernoulli.pre_from_samples">
-<em class="property">classmethod </em><code class="sig-name descname">pre_from_samples</code><span class="sig-paren">(</span><em class="sig-param">samples: Dict[str, jax.numpy.lax_numpy.ndarray]</em><span class="sig-paren">)</span><a class="headerlink" href="#shabadoo.Bernoulli.pre_from_samples" title="Permalink to this definition">¶</a></dt>
+<em class="property">classmethod </em><code class="sig-name descname">pre_from_samples</code><span class="sig-paren">(</span><em class="sig-param">samples:Dict[str, jax.numpy.lax_numpy.ndarray]</em><span class="sig-paren">)</span><a class="headerlink" href="#shabadoo.Bernoulli.pre_from_samples" title="Permalink to this definition">¶</a></dt>
 <dd><p>Additional functionality to run before from_samples is called.</p>
 <p>Use it to check for required additional variables, etc.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="shabadoo.Bernoulli.predict">
-<code class="sig-name descname">predict</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">df: pandas.core.frame.DataFrame</em><span class="sig-paren">)</span> &#x2192; pandas.core.series.Series<a class="headerlink" href="#shabadoo.Bernoulli.predict" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">predict</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">df:pandas.core.frame.DataFrame</em><span class="sig-paren">)</span> &#x2192; pandas.core.series.Series<a class="headerlink" href="#shabadoo.Bernoulli.predict" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the average posterior prediction across all samples.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -415,7 +415,7 @@ pointwise errors are returned as a DataFrame.</p>
 
 <dl class="method">
 <dt id="shabadoo.Bernoulli.sample_posterior_predictive">
-<code class="sig-name descname">sample_posterior_predictive</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">df: pandas.core.frame.DataFrame</em>, <em class="sig-param">hdpi: bool = False</em>, <em class="sig-param">hdpi_interval: float = 0.9</em><span class="sig-paren">)</span> &#x2192; Union[pandas.core.series.Series, pandas.core.frame.DataFrame]<a class="headerlink" href="#shabadoo.Bernoulli.sample_posterior_predictive" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">sample_posterior_predictive</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">df:pandas.core.frame.DataFrame</em>, <em class="sig-param">hdpi:bool=False</em>, <em class="sig-param">hdpi_interval:float=0.9</em><span class="sig-paren">)</span> &#x2192; Union[pandas.core.series.Series, pandas.core.frame.DataFrame]<a class="headerlink" href="#shabadoo.Bernoulli.sample_posterior_predictive" title="Permalink to this definition">¶</a></dt>
 <dd><p>Obtain samples from the posterior predictive.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -450,7 +450,7 @@ dataframe if HDPI is included.</p>
 
 <dl class="method">
 <dt id="shabadoo.Bernoulli.split_rand_key">
-<code class="sig-name descname">split_rand_key</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">n: int = 1</em><span class="sig-paren">)</span> &#x2192; &lt;function PRNGKey at 0x7fa6b5a47e60&gt;<a class="headerlink" href="#shabadoo.Bernoulli.split_rand_key" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">split_rand_key</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">n:int=1</em><span class="sig-paren">)</span> &#x2192; &lt;function PRNGKey at 0x7ff03487f378&gt;<a class="headerlink" href="#shabadoo.Bernoulli.split_rand_key" title="Permalink to this definition">¶</a></dt>
 <dd><p>Split the random key, assign a new key and return the subkeys.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -467,7 +467,7 @@ dataframe if HDPI is included.</p>
 
 <dl class="method">
 <dt id="shabadoo.Bernoulli.transform">
-<em class="property">classmethod </em><code class="sig-name descname">transform</code><span class="sig-paren">(</span><em class="sig-param">df: pandas.core.frame.DataFrame</em><span class="sig-paren">)</span> &#x2192; pandas.core.frame.DataFrame<a class="headerlink" href="#shabadoo.Bernoulli.transform" title="Permalink to this definition">¶</a></dt>
+<em class="property">classmethod </em><code class="sig-name descname">transform</code><span class="sig-paren">(</span><em class="sig-param">df:pandas.core.frame.DataFrame</em><span class="sig-paren">)</span> &#x2192; pandas.core.frame.DataFrame<a class="headerlink" href="#shabadoo.Bernoulli.transform" title="Permalink to this definition">¶</a></dt>
 <dd><p>Transform a dataframe for model input.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -490,7 +490,7 @@ dataframe if HDPI is included.</p>
 <dd><p>Exponential/poisson family model for rate data.</p>
 <dl class="method">
 <dt id="shabadoo.Poisson.fit">
-<code class="sig-name descname">fit</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">df: pandas.core.frame.DataFrame</em>, <em class="sig-param">sampler: str = 'NUTS'</em>, <em class="sig-param">**mcmc_kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#shabadoo.Poisson.fit" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">fit</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">df:pandas.core.frame.DataFrame</em>, <em class="sig-param">sampler:str='NUTS'</em>, <em class="sig-param">**mcmc_kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#shabadoo.Poisson.fit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Fit the model to a DataFrame.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -517,7 +517,7 @@ dataframe if HDPI is included.</p>
 
 <dl class="method">
 <dt id="shabadoo.Poisson.from_samples">
-<em class="property">classmethod </em><code class="sig-name descname">from_samples</code><span class="sig-paren">(</span><em class="sig-param">samples: Dict[str, jax.numpy.lax_numpy.ndarray]</em><span class="sig-paren">)</span><a class="headerlink" href="#shabadoo.Poisson.from_samples" title="Permalink to this definition">¶</a></dt>
+<em class="property">classmethod </em><code class="sig-name descname">from_samples</code><span class="sig-paren">(</span><em class="sig-param">samples:Dict[str, jax.numpy.lax_numpy.ndarray]</em><span class="sig-paren">)</span><a class="headerlink" href="#shabadoo.Poisson.from_samples" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a pre-fitted model given its samples.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -534,7 +534,7 @@ dataframe if HDPI is included.</p>
 
 <dl class="method">
 <dt id="shabadoo.Poisson.grouped_metrics">
-<code class="sig-name descname">grouped_metrics</code><span class="sig-paren">(</span><em class="sig-param">self, df: pandas.core.frame.DataFrame, groupby: Union[str, List[str]], aggfunc: Callable = &lt;function sum at 0x7fa6bf7d9680&gt;, aggerrs: bool = True</em><span class="sig-paren">)</span> &#x2192; Union[pandas.core.frame.DataFrame, Dict[str, float]]<a class="headerlink" href="#shabadoo.Poisson.grouped_metrics" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">grouped_metrics</code><span class="sig-paren">(</span><em class="sig-param">self, df:pandas.core.frame.DataFrame, groupby:Union[str, List[str]], aggfunc:Callable=&lt;function sum at 0x7ff03e386a60&gt;, aggerrs:bool=True</em><span class="sig-paren">)</span> &#x2192; Union[pandas.core.frame.DataFrame, Dict[str, float]]<a class="headerlink" href="#shabadoo.Poisson.grouped_metrics" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return grouped accuracy metrics.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -571,7 +571,7 @@ groupwise errors are returned as a DataFrame.</p>
 
 <dl class="method">
 <dt id="shabadoo.Poisson.metrics">
-<code class="sig-name descname">metrics</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">df: pandas.core.frame.DataFrame</em>, <em class="sig-param">aggerrs: bool = True</em><span class="sig-paren">)</span> &#x2192; Union[pandas.core.frame.DataFrame, Dict[str, float]]<a class="headerlink" href="#shabadoo.Poisson.metrics" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">metrics</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">df:pandas.core.frame.DataFrame</em>, <em class="sig-param">aggerrs:bool=True</em><span class="sig-paren">)</span> &#x2192; Union[pandas.core.frame.DataFrame, Dict[str, float]]<a class="headerlink" href="#shabadoo.Poisson.metrics" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get prediction accuracy metrics of the model against data.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -594,7 +594,7 @@ pointwise errors are returned as a DataFrame.</p>
 
 <dl class="method">
 <dt id="shabadoo.Poisson.model">
-<code class="sig-name descname">model</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">df: pandas.core.frame.DataFrame</em><span class="sig-paren">)</span><a class="headerlink" href="#shabadoo.Poisson.model" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">model</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">df:pandas.core.frame.DataFrame</em><span class="sig-paren">)</span><a class="headerlink" href="#shabadoo.Poisson.model" title="Permalink to this definition">¶</a></dt>
 <dd><p>Define and return samples from the model.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -611,14 +611,14 @@ pointwise errors are returned as a DataFrame.</p>
 
 <dl class="method">
 <dt id="shabadoo.Poisson.pre_from_samples">
-<em class="property">classmethod </em><code class="sig-name descname">pre_from_samples</code><span class="sig-paren">(</span><em class="sig-param">samples: Dict[str, jax.numpy.lax_numpy.ndarray]</em><span class="sig-paren">)</span><a class="headerlink" href="#shabadoo.Poisson.pre_from_samples" title="Permalink to this definition">¶</a></dt>
+<em class="property">classmethod </em><code class="sig-name descname">pre_from_samples</code><span class="sig-paren">(</span><em class="sig-param">samples:Dict[str, jax.numpy.lax_numpy.ndarray]</em><span class="sig-paren">)</span><a class="headerlink" href="#shabadoo.Poisson.pre_from_samples" title="Permalink to this definition">¶</a></dt>
 <dd><p>Additional functionality to run before from_samples is called.</p>
 <p>Use it to check for required additional variables, etc.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="shabadoo.Poisson.predict">
-<code class="sig-name descname">predict</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">df: pandas.core.frame.DataFrame</em><span class="sig-paren">)</span> &#x2192; pandas.core.series.Series<a class="headerlink" href="#shabadoo.Poisson.predict" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">predict</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">df:pandas.core.frame.DataFrame</em><span class="sig-paren">)</span> &#x2192; pandas.core.series.Series<a class="headerlink" href="#shabadoo.Poisson.predict" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the average posterior prediction across all samples.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -635,7 +635,7 @@ pointwise errors are returned as a DataFrame.</p>
 
 <dl class="method">
 <dt id="shabadoo.Poisson.sample_posterior_predictive">
-<code class="sig-name descname">sample_posterior_predictive</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">df: pandas.core.frame.DataFrame</em>, <em class="sig-param">hdpi: bool = False</em>, <em class="sig-param">hdpi_interval: float = 0.9</em><span class="sig-paren">)</span> &#x2192; Union[pandas.core.series.Series, pandas.core.frame.DataFrame]<a class="headerlink" href="#shabadoo.Poisson.sample_posterior_predictive" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">sample_posterior_predictive</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">df:pandas.core.frame.DataFrame</em>, <em class="sig-param">hdpi:bool=False</em>, <em class="sig-param">hdpi_interval:float=0.9</em><span class="sig-paren">)</span> &#x2192; Union[pandas.core.series.Series, pandas.core.frame.DataFrame]<a class="headerlink" href="#shabadoo.Poisson.sample_posterior_predictive" title="Permalink to this definition">¶</a></dt>
 <dd><p>Obtain samples from the posterior predictive.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -670,7 +670,7 @@ dataframe if HDPI is included.</p>
 
 <dl class="method">
 <dt id="shabadoo.Poisson.split_rand_key">
-<code class="sig-name descname">split_rand_key</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">n: int = 1</em><span class="sig-paren">)</span> &#x2192; &lt;function PRNGKey at 0x7fa6b5a47e60&gt;<a class="headerlink" href="#shabadoo.Poisson.split_rand_key" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">split_rand_key</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">n:int=1</em><span class="sig-paren">)</span> &#x2192; &lt;function PRNGKey at 0x7ff03487f378&gt;<a class="headerlink" href="#shabadoo.Poisson.split_rand_key" title="Permalink to this definition">¶</a></dt>
 <dd><p>Split the random key, assign a new key and return the subkeys.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -687,7 +687,7 @@ dataframe if HDPI is included.</p>
 
 <dl class="method">
 <dt id="shabadoo.Poisson.transform">
-<em class="property">classmethod </em><code class="sig-name descname">transform</code><span class="sig-paren">(</span><em class="sig-param">df: pandas.core.frame.DataFrame</em><span class="sig-paren">)</span> &#x2192; pandas.core.frame.DataFrame<a class="headerlink" href="#shabadoo.Poisson.transform" title="Permalink to this definition">¶</a></dt>
+<em class="property">classmethod </em><code class="sig-name descname">transform</code><span class="sig-paren">(</span><em class="sig-param">df:pandas.core.frame.DataFrame</em><span class="sig-paren">)</span> &#x2192; pandas.core.frame.DataFrame<a class="headerlink" href="#shabadoo.Poisson.transform" title="Permalink to this definition">¶</a></dt>
 <dd><p>Transform a dataframe for model input.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
