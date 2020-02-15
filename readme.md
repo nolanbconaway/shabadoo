@@ -1,11 +1,13 @@
 # Shabadoo: very easy Bayesian regression.
 
->![](img/shabadoo.jpg)
+>![Imgur](https://i.imgur.com/yScWnEt.jpg)
 >
 > "That's the worst name I ever heard."
 
 [![badge](https://github.com/nolanbconaway/shabadoo/workflows/Main%20Workflow/badge.svg)](https://github.com/nolanbconaway/shabadoo/actions)
 [![codecov](https://codecov.io/gh/nolanbconaway/shabadoo/branch/master/graph/badge.svg?token=gIubsLSSHH)](https://codecov.io/gh/nolanbconaway/shabadoo)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/shabadoo)](https://pypi.org/project/shabadoo/)
+[![PyPI](https://img.shields.io/pypi/v/shabadoo)](https://pypi.org/project/shabadoo/)
 
 Shabadoo is the worst kind of machine learning. It automates nothing; your models will not perform well and it will be your own fault. 
 
@@ -15,11 +17,17 @@ Shabadoo runs on [numpyro](http://num.pyro.ai/) and is basically a wrapper aroun
 
 ## Quickstart
 
-
 ### Install
 
-> TODO
+```sh
+pip install shabadoo
+```
 
+or
+
+```sh
+pip install git+https://github.com/nolanbconaway/shabadoo
+```
 
 ### Specifying a Shabadoo Bayesian model
 
