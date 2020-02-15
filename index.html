@@ -1,0 +1,292 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Shabadoo: very easy Bayesian regression. &#8212; Shabadoo  documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="API Documentation" href="api.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api.html" title="API Documentation"
+             accesskey="N">next</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">Shabadoo  documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="shabadoo-very-easy-bayesian-regression">
+<h1>Shabadoo: very easy Bayesian regression.<a class="headerlink" href="#shabadoo-very-easy-bayesian-regression" title="Permalink to this headline">¶</a></h1>
+<blockquote>
+<div><a class="reference external image-reference" href="https://i.imgur.com/yScWnEt.jpg"><img alt="Imgur" src="https://i.imgur.com/yScWnEt.jpg" /></a>
+<p>“That’s the worst name I ever heard.”</p>
+</div></blockquote>
+<a class="reference external image-reference" href="https://github.com/nolanbconaway/shabadoo/actions"><img alt="badge" src="https://github.com/nolanbconaway/shabadoo/workflows/Main%20Workflow/badge.svg" /></a>
+<a class="reference external image-reference" href="https://codecov.io/gh/nolanbconaway/shabadoo"><img alt="codecov" src="https://codecov.io/gh/nolanbconaway/shabadoo/branch/master/graph/badge.svg?token=gIubsLSSHH" /></a>
+<a class="reference external image-reference" href="https://pypi.org/project/shabadoo/"><img alt="PyPI - Python Version" src="https://img.shields.io/pypi/pyversions/shabadoo" /></a>
+<a class="reference external image-reference" href="https://pypi.org/project/shabadoo/"><img alt="PyPI" src="https://img.shields.io/pypi/v/shabadoo" /></a>
+<p>Shabadoo is the worst kind of machine learning. It automates nothing; your models will not perform well and it will be your own fault.</p>
+<p>Shabadoo is for people who want to do Bayesian regression but who do not want to write probabilistic programming code. You only need to assign priors to features and pass your pandas dataframe to a <code class="docutils literal notranslate"><span class="pre">.fit()</span></code> / <code class="docutils literal notranslate"><span class="pre">.predict()</span></code> API.</p>
+<p>Shabadoo runs on <a class="reference external" href="http://num.pyro.ai/">numpyro</a> and is basically a wrapper around the <a class="reference external" href="https://pyro.ai/numpyro/bayesian_regression.html">numpyro Bayesian regression tutorial</a>.</p>
+<div class="section" id="quickstart">
+<h2>Quickstart<a class="headerlink" href="#quickstart" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="install">
+<h3>Install<a class="headerlink" href="#install" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>pip install shabadoo
+</pre></div>
+</div>
+<p>or</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>pip install git+https://github.com/nolanbconaway/shabadoo
+</pre></div>
+</div>
+</div>
+<div class="section" id="specifying-a-shabadoo-bayesian-model">
+<h3>Specifying a Shabadoo Bayesian model<a class="headerlink" href="#specifying-a-shabadoo-bayesian-model" title="Permalink to this headline">¶</a></h3>
+<p>Shabadoo was designed to make it as easy as possible to test ideas about features and their priors. Models are defined using a class which contains configuration specifying how the model should behave.</p>
+<p>You need to define a new class which inherits from one of the Shabadoo models. Currently, Normal, Poisson, and Bernoulli are implemented.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">numpyro</span> <span class="kn">import</span> <span class="n">distributions</span> <span class="k">as</span> <span class="n">dist</span>
+<span class="kn">from</span> <span class="nn">shabadoo</span> <span class="kn">import</span> <span class="n">Normal</span>
+
+<span class="c1"># fake data</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="n">y</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">]))</span>
+
+<span class="k">class</span> <span class="nc">Model</span><span class="p">(</span><span class="n">Normal</span><span class="p">):</span>
+    <span class="n">dv</span> <span class="o">=</span> <span class="s2">&quot;y&quot;</span>
+    <span class="n">features</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="n">const</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">transformer</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">prior</span><span class="o">=</span><span class="n">dist</span><span class="o">.</span><span class="n">Normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)),</span>
+        <span class="n">x</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">transformer</span><span class="o">=</span><span class="k">lambda</span> <span class="n">df</span><span class="p">:</span> <span class="n">df</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">prior</span><span class="o">=</span><span class="n">dist</span><span class="o">.</span><span class="n">Normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)),</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">dv</span></code> attribute specifies the variable you are predicting. <code class="docutils literal notranslate"><span class="pre">features</span></code> is a dictionary of dictionaries, with one item per feature. Above, two features are defined (<code class="docutils literal notranslate"><span class="pre">const</span></code> and <code class="docutils literal notranslate"><span class="pre">x</span></code>). Each feature needs a <code class="docutils literal notranslate"><span class="pre">transformer</span></code> and a <code class="docutils literal notranslate"><span class="pre">prior</span></code>.</p>
+<p>The transformer specifies how to obtain the feature given a source dataframe. The prior specifies your beliefs about the model’s coefficient for that feature.</p>
+</div>
+<div class="section" id="fitting-predicting-the-model">
+<h3>Fitting &amp; predicting the model<a class="headerlink" href="#fitting-predicting-the-model" title="Permalink to this headline">¶</a></h3>
+<p>Shabadoo models implement the well-known <code class="docutils literal notranslate"><span class="pre">.fit</span></code> / <code class="docutils literal notranslate"><span class="pre">.predict</span></code> api pattern.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">model</span> <span class="o">=</span> <span class="n">Model</span><span class="p">()</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+<span class="c1"># sample: 100%|██████████| 1500/1500 [00:05&lt;00:00, 282.76it/s, 7 steps of size 4.17e-01. acc. prob=0.88]</span>
+
+<span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">0    1.309280</span>
+<span class="sd">1    2.176555</span>
+<span class="sd">2    2.176555</span>
+<span class="sd">3    3.043831</span>
+<span class="sd">4    3.911106</span>
+<span class="sd">5    4.778381</span>
+<span class="sd">&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="inspecting-the-model">
+<h3>Inspecting the model<a class="headerlink" href="#inspecting-the-model" title="Permalink to this headline">¶</a></h3>
+<p>Shabadoo’s model classes come with a number of model inspection methods. It should be easy to understsand your model’s composition and with Shabadoo it is!</p>
+<div class="section" id="print-the-model-formula">
+<h4>Print the model formula<a class="headerlink" href="#print-the-model-formula" title="Permalink to this headline">¶</a></h4>
+<p>The average and standard deviation of the MCMC samples are used to provide a rough sense of the coefficient in general.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">formula</span><span class="p">)</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">y = (</span>
+<span class="sd">    const * 0.44200(+-0.63186)</span>
+<span class="sd">    x * 0.86728(+-0.22604)</span>
+<span class="sd">)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="measure-prediction-accuracy">
+<h4>Measure prediction accuracy.<a class="headerlink" href="#measure-prediction-accuracy" title="Permalink to this headline">¶</a></h4>
+<p>The <code class="docutils literal notranslate"><span class="pre">Model.metrics()</span></code> method is packed with functionality. You should not have to write a lot of code to evaluate your model’s prediction accuracy!</p>
+<p>Obtaining aggregate statistics is as easy as:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">model</span><span class="o">.</span><span class="n">metrics</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+
+<span class="p">{</span><span class="s1">&#39;r&#39;</span><span class="p">:</span> <span class="mf">0.8646920305474705</span><span class="p">,</span>
+ <span class="s1">&#39;rsq&#39;</span><span class="p">:</span> <span class="mf">0.7476923076923075</span><span class="p">,</span>
+ <span class="s1">&#39;mae&#39;</span><span class="p">:</span> <span class="mf">0.5663623639121652</span><span class="p">,</span>
+ <span class="s1">&#39;mape&#39;</span><span class="p">:</span> <span class="mf">0.20985123644135573</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>For per-point errors, use <code class="docutils literal notranslate"><span class="pre">aggerrs=False</span></code>. A pandas dataframe will be returned that you can join on your source data using its index.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">model</span><span class="o">.</span><span class="n">metrics</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">aggerrs</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   residual         pe        ape</span>
+<span class="sd">0 -0.309280 -30.928012  30.928012</span>
+<span class="sd">1 -0.176555  -8.827769   8.827769</span>
+<span class="sd">2  0.823445  27.448154  27.448154</span>
+<span class="sd">3  0.956169  23.904233  23.904233</span>
+<span class="sd">4 -0.911106 -30.370198  30.370198</span>
+<span class="sd">5  0.221619   4.432376   4.432376</span>
+<span class="sd">&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+<p>You can use <code class="docutils literal notranslate"><span class="pre">grouped_metrics</span></code> to understand within-group errors. Under the hood, the predicted and actual <code class="docutils literal notranslate"><span class="pre">dv</span></code> are groupby-aggregated (default sum) and metrics are computed within each group.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;group&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+<span class="n">model</span><span class="o">.</span><span class="n">grouped_metrics</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="s1">&#39;group&#39;</span><span class="p">)</span>
+
+<span class="p">{</span><span class="s1">&#39;r&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s1">&#39;rsq&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s1">&#39;mae&#39;</span><span class="p">:</span> <span class="mf">0.30214565559127315</span><span class="p">,</span> <span class="s1">&#39;mape&#39;</span><span class="p">:</span> <span class="mf">0.03924585080786096</span><span class="p">}</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">model</span><span class="o">.</span><span class="n">grouped_metrics</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="s2">&quot;group&quot;</span><span class="p">,</span> <span class="n">aggerrs</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">       residual        pe       ape</span>
+<span class="sd">group</span>
+<span class="sd">1     -0.337609 -5.626818  5.626818</span>
+<span class="sd">2     -0.266682 -2.222352  2.222352</span>
+<span class="sd">&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="saving-and-recovering-a-saved-model">
+<h3>Saving and recovering a saved model<a class="headerlink" href="#saving-and-recovering-a-saved-model" title="Permalink to this headline">¶</a></h3>
+<p>Shabadoo models have a <code class="docutils literal notranslate"><span class="pre">from_samples</span></code> method which allows a model to be save and recovered exactly.</p>
+<p>Samples from fitted models can be accessed using <code class="docutils literal notranslate"><span class="pre">model.samples</span></code> and <code class="docutils literal notranslate"><span class="pre">model.samples_df</span></code>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">model</span><span class="o">.</span><span class="n">samples</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">DeviceArray([0.65721655, 0.7644873 , 0.8724553 , 0.6285299 , 0.681262  ,</span>
+<span class="sd">...</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="n">model</span><span class="o">.</span><span class="n">samples_df</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">      const         x</span>
+<span class="sd">0  0.689248  0.657217</span>
+<span class="sd">1  0.524834  0.764487</span>
+<span class="sd">2  1.093962  0.872455</span>
+<span class="sd">3  1.253354  0.628530</span>
+<span class="sd">4  1.021025  0.681262</span>
+<span class="sd">&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+<p>Use the samples to recover your model:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">model_recovered</span> <span class="o">=</span> <span class="n">Model</span><span class="o">.</span><span class="n">from_samples</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">samples</span><span class="p">)</span>
+
+<span class="n">model_recovered</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">df</span><span class="p">)</span><span class="o">.</span><span class="n">equals</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">df</span><span class="p">))</span>
+<span class="kc">True</span>
+</pre></div>
+</div>
+<p>Model samples can be saved as JSON using <code class="docutils literal notranslate"><span class="pre">model.samples_json</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">json</span>
+
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;model.json&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">samples_json</span><span class="p">)</span>
+
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;model.json&#39;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">model_recovered</span> <span class="o">=</span> <span class="n">Model</span><span class="o">.</span><span class="n">from_samples</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="table-of-contents">
+<h1>Table of Contents<a class="headerlink" href="#table-of-contents" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Documentation</a><ul class="simple">
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="#">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Shabadoo: very easy Bayesian regression.</a><ul>
+<li><a class="reference internal" href="#quickstart">Quickstart</a><ul>
+<li><a class="reference internal" href="#install">Install</a></li>
+<li><a class="reference internal" href="#specifying-a-shabadoo-bayesian-model">Specifying a Shabadoo Bayesian model</a></li>
+<li><a class="reference internal" href="#fitting-predicting-the-model">Fitting &amp; predicting the model</a></li>
+<li><a class="reference internal" href="#inspecting-the-model">Inspecting the model</a><ul>
+<li><a class="reference internal" href="#print-the-model-formula">Print the model formula</a></li>
+<li><a class="reference internal" href="#measure-prediction-accuracy">Measure prediction accuracy.</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#saving-and-recovering-a-saved-model">Saving and recovering a saved model</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#table-of-contents">Table of Contents</a></li>
+</ul>
+
+  <h4>Next topic</h4>
+  <p class="topless"><a href="api.html"
+                        title="next chapter">API Documentation</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api.html" title="API Documentation"
+             >next</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">Shabadoo  documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2020, Nolan Conaway.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.4.1.
+    </div>
+  </body>
+</html>
