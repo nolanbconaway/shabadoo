@@ -45,16 +45,11 @@ jobs:
           file: ./coverage.xml
 
       - name: Build docs
-        run: sphinx-build docs build
-
-      - name: Publish to Pypi if tagging release and Python 3.7
-        if: startsWith(github.event.ref, 'refs/tags') && matrix.python-version == 3.7
-        env:
-          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
         run: |
-          pip install twine wheel --upgrade
-          python setup.py sdist bdist_wheel
-          twine upload dist/* -u __token__ -p $PYPI_TOKEN
+          sphinx-build docs build
+          touch build/.nojekyll
+        env:
+          SPHINX_BUILD_PROD: true
 
       - name: Deploy docs to Github Pages if tagging release and Python 3.7
         if: startsWith(github.event.ref, 'refs/tags') && matrix.python-version == 3.7
@@ -64,3 +59,12 @@ jobs:
           BRANCH: gh-pages
           FOLDER: build
           GITHUB_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
+
+      - name: Publish to Pypi if tagging release and Python 3.7
+        if: startsWith(github.event.ref, 'refs/tags') && matrix.python-version == 3.7
+        env:
+          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+        run: |
+          pip install twine wheel --upgrade
+          python setup.py sdist bdist_wheel
+          twine upload dist/* -u __token__ -p $PYPI_TOKEN
