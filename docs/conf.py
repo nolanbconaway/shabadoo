@@ -33,6 +33,7 @@ extensions = [
     "sphinx.ext.napoleon",
     "numpydoc",
     "sphinx.ext.viewcode",
+    "sphinx.ext.githubpages",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -58,4 +59,5 @@ html_static_path = []
 
 # set up base url in prod env
 if os.getenv("SPHINX_BUILD_PROD"):
+    print("Setting prod baseurl.")
     html_baseurl = "https://nolanbconaway.github.io/shabadoo/"

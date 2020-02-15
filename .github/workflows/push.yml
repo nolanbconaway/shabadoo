@@ -45,14 +45,12 @@ jobs:
           file: ./coverage.xml
 
       - name: Build docs
-        run: |
-          sphinx-build docs build
-          touch build/.nojekyll
+        run: sphinx-build docs build
         env:
           SPHINX_BUILD_PROD: true
 
       - name: Deploy docs to Github Pages if tagging release and Python 3.7
-        if: startsWith(github.event.ref, 'refs/tags') && matrix.python-version == 3.7
+        # if: startsWith(github.event.ref, 'refs/tags') && matrix.python-version == 3.7
         uses: s0/git-publish-subdir-action@master
         env:
           REPO: self
