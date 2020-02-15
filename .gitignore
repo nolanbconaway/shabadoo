@@ -9,3 +9,5 @@ dev.ipynb
 *.pyc
 build/
 docs/img
+dist
+.env
