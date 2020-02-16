@@ -50,7 +50,7 @@ jobs:
           SPHINX_BUILD_PROD: true
 
       - name: Deploy docs to Github Pages if master branch and Python 3.7
-        if: github.event.ref == 'refs/heads/master && matrix.python-version == 3.7
+        if: github.event.ref == 'refs/heads/master' && matrix.python-version == 3.7
         uses: peaceiris/actions-gh-pages@v3
         with:
           personal_token: ${{ secrets.GH_ACCESS_TOKEN }}
