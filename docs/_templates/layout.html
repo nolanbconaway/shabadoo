@@ -1,0 +1,12 @@
+{% extends "!layout.html" %}
+{%- block extrahead %}
+{{ super() }}
+<!-- add google analyitcs tracking -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-80719882-1"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'UA-80719882-1');
+</script>
+{% endblock %}
