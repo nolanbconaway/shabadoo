@@ -4,11 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-<!-- applied for prod site. -->
-<base href="/shabadoo/">
-
     <title>API Documentation &#8212; Shabadoo  documentation</title>
-
     <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     
@@ -99,7 +95,7 @@
 
 <dl class="method">
 <dt id="shabadoo.Normal.grouped_metrics">
-<code class="sig-name descname">grouped_metrics</code><span class="sig-paren">(</span><em class="sig-param">self, df: pandas.core.frame.DataFrame, groupby: Union[str, List[str]], aggfunc: Callable = &lt;function sum at 0x7f324d3883b0&gt;, aggerrs: bool = True</em><span class="sig-paren">)</span> &#x2192; Union[pandas.core.frame.DataFrame, Dict[str, float]]<a class="headerlink" href="#shabadoo.Normal.grouped_metrics" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">grouped_metrics</code><span class="sig-paren">(</span><em class="sig-param">self, df: pandas.core.frame.DataFrame, groupby: Union[str, List[str]], aggfunc: Callable = &lt;function sum at 0x7f88627c93b0&gt;, aggerrs: bool = True</em><span class="sig-paren">)</span> &#x2192; Union[pandas.core.frame.DataFrame, Dict[str, float]]<a class="headerlink" href="#shabadoo.Normal.grouped_metrics" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return grouped accuracy metrics.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -234,7 +230,7 @@ dataframe if HDPI is included.</p>
 
 <dl class="method">
 <dt id="shabadoo.Normal.split_rand_key">
-<code class="sig-name descname">split_rand_key</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">n: int = 1</em><span class="sig-paren">)</span> &#x2192; &lt;function PRNGKey at 0x7f32435f9b90&gt;<a class="headerlink" href="#shabadoo.Normal.split_rand_key" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">split_rand_key</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">n: int = 1</em><span class="sig-paren">)</span> &#x2192; &lt;function PRNGKey at 0x7f8858a37b90&gt;<a class="headerlink" href="#shabadoo.Normal.split_rand_key" title="Permalink to this definition">¶</a></dt>
 <dd><p>Split the random key, assign a new key and return the subkeys.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -318,7 +314,7 @@ dataframe if HDPI is included.</p>
 
 <dl class="method">
 <dt id="shabadoo.Bernoulli.grouped_metrics">
-<code class="sig-name descname">grouped_metrics</code><span class="sig-paren">(</span><em class="sig-param">self, df: pandas.core.frame.DataFrame, groupby: Union[str, List[str]], aggfunc: Callable = &lt;function sum at 0x7f324d3883b0&gt;, aggerrs: bool = True</em><span class="sig-paren">)</span> &#x2192; Union[pandas.core.frame.DataFrame, Dict[str, float]]<a class="headerlink" href="#shabadoo.Bernoulli.grouped_metrics" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">grouped_metrics</code><span class="sig-paren">(</span><em class="sig-param">self, df: pandas.core.frame.DataFrame, groupby: Union[str, List[str]], aggfunc: Callable = &lt;function sum at 0x7f88627c93b0&gt;, aggerrs: bool = True</em><span class="sig-paren">)</span> &#x2192; Union[pandas.core.frame.DataFrame, Dict[str, float]]<a class="headerlink" href="#shabadoo.Bernoulli.grouped_metrics" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return grouped accuracy metrics.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -454,7 +450,7 @@ dataframe if HDPI is included.</p>
 
 <dl class="method">
 <dt id="shabadoo.Bernoulli.split_rand_key">
-<code class="sig-name descname">split_rand_key</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">n: int = 1</em><span class="sig-paren">)</span> &#x2192; &lt;function PRNGKey at 0x7f32435f9b90&gt;<a class="headerlink" href="#shabadoo.Bernoulli.split_rand_key" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">split_rand_key</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">n: int = 1</em><span class="sig-paren">)</span> &#x2192; &lt;function PRNGKey at 0x7f8858a37b90&gt;<a class="headerlink" href="#shabadoo.Bernoulli.split_rand_key" title="Permalink to this definition">¶</a></dt>
 <dd><p>Split the random key, assign a new key and return the subkeys.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -538,7 +534,7 @@ dataframe if HDPI is included.</p>
 
 <dl class="method">
 <dt id="shabadoo.Poisson.grouped_metrics">
-<code class="sig-name descname">grouped_metrics</code><span class="sig-paren">(</span><em class="sig-param">self, df: pandas.core.frame.DataFrame, groupby: Union[str, List[str]], aggfunc: Callable = &lt;function sum at 0x7f324d3883b0&gt;, aggerrs: bool = True</em><span class="sig-paren">)</span> &#x2192; Union[pandas.core.frame.DataFrame, Dict[str, float]]<a class="headerlink" href="#shabadoo.Poisson.grouped_metrics" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">grouped_metrics</code><span class="sig-paren">(</span><em class="sig-param">self, df: pandas.core.frame.DataFrame, groupby: Union[str, List[str]], aggfunc: Callable = &lt;function sum at 0x7f88627c93b0&gt;, aggerrs: bool = True</em><span class="sig-paren">)</span> &#x2192; Union[pandas.core.frame.DataFrame, Dict[str, float]]<a class="headerlink" href="#shabadoo.Poisson.grouped_metrics" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return grouped accuracy metrics.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -674,7 +670,7 @@ dataframe if HDPI is included.</p>
 
 <dl class="method">
 <dt id="shabadoo.Poisson.split_rand_key">
-<code class="sig-name descname">split_rand_key</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">n: int = 1</em><span class="sig-paren">)</span> &#x2192; &lt;function PRNGKey at 0x7f32435f9b90&gt;<a class="headerlink" href="#shabadoo.Poisson.split_rand_key" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">split_rand_key</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">n: int = 1</em><span class="sig-paren">)</span> &#x2192; &lt;function PRNGKey at 0x7f8858a37b90&gt;<a class="headerlink" href="#shabadoo.Poisson.split_rand_key" title="Permalink to this definition">¶</a></dt>
 <dd><p>Split the random key, assign a new key and return the subkeys.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
