@@ -1,0 +1,31 @@
+name: Build and Release Docs to Github Pages
+
+on:
+  push:
+    branches:
+      - master
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v1
+        with:
+          python-version: "3.7"
+
+      - name: Install Dependencies
+        run: |
+          pip install --upgrade pip
+          pip install sphinx m2r numpydoc --upgrade
+          python setup.py develop --no-deps
+
+      - name: Build docs
+        run: sphinx-build docs build
+        env:
+          SPHINX_BUILD_PROD: true
+
+      - name: Deploy docs to Github Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          personal_token: ${{ secrets.GH_ACCESS_TOKEN }}
+          publish_dir: ./build

@@ -1,6 +1,8 @@
-name: Lint and Test
+name: Scheduled Testing
 
-on: push
+on:
+  schedule:
+    - cron: "0 0 * * 5" # run scheduled tests every friday, in time to ruin my weekend.
 
 jobs:
   run:
@@ -22,23 +24,12 @@ jobs:
           pip install --upgrade pip
 
           # test deps
-          pip install --upgrade black pytest pytest-cov codecov
+          pip install --upgrade pytest
 
           # install deps manually bc pypi numpyro is too strict.
           pip install --upgrade jax jaxlib numpyro tqdm pandas
           pip install git+https://github.com/pyro-ppl/numpyro --no-deps
           python setup.py develop --no-deps
 
-      - name: Lint with Black
-        run: black . --check --verbose
-
       - name: Run unit tests with Pytest
-        run: pytest --verbose --cov=./ --cov-report=xml
-
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v1.0.2
-        with:
-          token: ${{secrets.CODECOV_TOKEN}}
-          name: ${{matrix.python-version}}
-          file: ./coverage.xml
-        continue-on-error: true # I don't care THAT much about codecov
+        run: pytest --verbose
