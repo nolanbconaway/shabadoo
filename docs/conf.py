@@ -19,6 +19,6 @@ exclude_patterns = []
 html_theme = "classic"
 html_static_path = []
 
-# set up base url in prod env
 if os.getenv("SPHINX_BUILD_PROD"):
     html_baseurl = "https://nolanbconaway.github.io/shabadoo/"
+    templates_path.append("_templates")
