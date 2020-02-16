@@ -49,14 +49,12 @@ jobs:
         env:
           SPHINX_BUILD_PROD: true
 
-      - name: Deploy docs to Github Pages if tagging release and Python 3.7
-        # if: startsWith(github.event.ref, 'refs/tags') && matrix.python-version == 3.7
-        uses: s0/git-publish-subdir-action@master
-        env:
-          REPO: self
-          BRANCH: gh-pages
-          FOLDER: build
-          GITHUB_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
+      - name: Deploy docs to Github Pages if master branch and Python 3.7
+        if: github.event.ref == 'refs/heads/master' && matrix.python-version == 3.7
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          personal_token: ${{ secrets.GH_ACCESS_TOKEN }}
+          publish_dir: ./build
 
       - name: Publish to Pypi if tagging release and Python 3.7
         if: startsWith(github.event.ref, 'refs/tags') && matrix.python-version == 3.7
