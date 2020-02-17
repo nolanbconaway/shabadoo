@@ -78,7 +78,7 @@ model.predict(df)
 
 ### Inspecting the model
 
-Shabadoo's model classes come with a number of model inspection methods. It should be easy to understsand your model's composition and with Shabadoo it is!
+Shabadoo's model classes come with a number of model inspection methods. It should be easy to understand your model's composition and with Shabadoo it is!
 
 #### Print the model formula
 
