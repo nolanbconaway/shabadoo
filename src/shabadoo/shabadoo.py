@@ -238,26 +238,45 @@ class BaseModel(ABC):
         """
         pass
 
-    def predict(self, df: pd.DataFrame) -> pd.Series:
+    def predict(
+        self, df: pd.DataFrame, ci: bool = False, ci_interval: float = 0.9
+    ) -> typing.Union[pd.Series, pd.DataFrame]:
         """Return the average posterior prediction across all samples.
         
         Parameters
         ----------
         df : pd.DataFrame
             Source dataframe.
+        ci : float
+            Option to include a confidence interval around the predictions. Returns a 
+            dataframe if true, a series if false. Default False.
+        ci_interval : float
+            Confidence interval width. Default 0.9.
 
         Returns
         -------
-        pd.Series
-            Model predictions with matching index as the source df.
+        pd.Series or pd.DataFrame
+            Forecasts. Will be a series with the name of the dv if no ci. Will be a
+            dataframe if ci is included.
 
         """
         # matmul inputs * coefs, then send through link
-        yhat = self.link(
+        predictions = self.link(
             self.transform(df).values @ self.samples_df.transpose().values
-        ).mean(axis=1)
+        )
 
-        return pd.Series(yhat, index=df.index, name=self.dv)
+        if not ci:
+            return pd.Series(predictions.mean(axis=1), index=df.index, name=self.dv)
+
+        quantiles = onp.quantile(predictions, [1 - ci_interval, ci_interval], axis=1)
+        return pd.DataFrame(
+            {
+                self.dv: predictions.mean(axis=1),
+                "ci_lower": quantiles[0, :],
+                "ci_upper": quantiles[1, :],
+            },
+            index=df.index,
+        )
 
     @require_fitted
     def sample_posterior_predictive(

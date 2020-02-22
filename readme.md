@@ -77,6 +77,8 @@ model.predict(df)
 """
 ```
 
+Use `model.predict(df, ci=True)` to obtain a confidence interval around the model's prediction.
+
 ### Inspecting the model
 
 Shabadoo's model classes come with a number of model inspection methods. It should be easy to understand your model's composition and with Shabadoo it is!

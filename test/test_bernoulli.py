@@ -92,8 +92,31 @@ def test_predict():
         dv = "y"
         features = dict(x=dict(transformer=lambda x: x.x, prior=dist.Normal(0, 1)))
 
-    samples = {"x": onp.array([1.0] * 10000000)}
+    samples = {"x": onp.array([1.0] * 10)}
     model = Model().from_samples(samples)
     pred = model.predict(df)
     logit_pred = logit(pred).round(2)
     assert df.x.astype("float32").equals(logit_pred.astype("float32"))
+
+
+def test_predict_ci():
+    """Test that predict makes sense when init from samples."""
+    df = pd.DataFrame(dict(x=[1.0, 2.0, 3.0, 4.0]))
+
+    class Model(Bernoulli):
+        dv = "y"
+        features = dict(x=dict(transformer=lambda x: x.x, prior=dist.Normal(0, 1)))
+
+    # ci = yhat when no variation in samples
+    samples = {"x": onp.array([1.0] * 10)}
+    model = Model().from_samples(samples)
+    pred = model.predict(df, ci=True).round(5).astype("float32")
+    assert pred.y.equals(pred.ci_lower)
+    assert pred.y.equals(pred.ci_upper)
+
+    # lower < yhat < upper when some variation in samples
+    samples = {"x": onp.random.normal(size=(100,)) * 0.1}
+    model = Model().from_samples(samples)
+    pred = model.predict(df, ci=True)
+    assert (pred.y > pred.ci_lower).all()
+    assert (pred.y < pred.ci_upper).all()
