@@ -427,11 +427,17 @@ class BaseModel(ABC):
         """Return a formula string describing the model."""
         descriptives = self.samples_df.describe()
         formula_template = f"{self.dv} = " + self._formula_link_str
-
+        print(descriptives)
         # get a string rep from each descriptive column. this will be for each feature:
         #       x * mu(+-sd)
         def get_str(x):
-            return "\t" + f"""{x.name} * {x['mean']:0.5f}(+-{x['std']:0.5f})"""
+            mu = x["mean"]
+            sd = x["std"]
+            if x.name == descriptives.columns.values[0]:
+                prefix = "    "
+            else:
+                prefix = "  + "
+            return prefix + f"""{x.name} * {mu:0.5f}(+-{sd:0.5f})"""
 
         lc = "\n".join(descriptives.apply(get_str, axis=0).tolist())
         return formula_template.format(lc=lc)

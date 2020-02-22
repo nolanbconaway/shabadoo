@@ -28,15 +28,18 @@ def test_single_coef_is_about_right():
 
 def test_formula():
     """Test that the formula is as expected."""
-    samples = {"x": onp.array([1.0] * 10)}
+    samples = {"x1": onp.array([1.0] * 10), "x2": onp.array([1.0] * 10)}
 
     class Model(Poisson):
         dv = "y"
-        features = dict(x=dict(transformer=lambda x: x.x, prior=dist.Normal(0, 10)))
+        features = dict(
+            x1=dict(transformer=1, prior=dist.Normal(0, 1)),
+            x2=dict(transformer=2, prior=dist.Normal(0, 1)),
+        )
 
     model = Model().from_samples(samples)
     formula = model.formula
-    expected = "y = exp(\n\tx * 1.00000(+-0.00000)\n)"
+    expected = "y = exp(\n    x1 * 1.00000(+-0.00000)\n  + x2 * 1.00000(+-0.00000)\n)"
     assert formula == expected
 
 
