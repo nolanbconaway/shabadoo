@@ -193,15 +193,25 @@ def test_predict():
 
 def test_formula():
     """Test that the formula is as expected."""
-    samples = {"x": onp.array([1.0] * 10), "_sigma": onp.array([0] * 10)}
+    samples = {
+        "x1": onp.array([1.0] * 10),
+        "x2": onp.array([1.0] * 10),
+        "_sigma": onp.array([0] * 10),
+    }
 
     class Model(Normal):
         dv = "y"
-        features = dict(x=dict(transformer=lambda x: x.x, prior=dist.Normal(0, 1)))
+        features = dict(
+            x1=dict(transformer=1, prior=dist.Normal(0, 1)),
+            x2=dict(transformer=2, prior=dist.Normal(0, 1)),
+        )
 
     model = Model().from_samples(samples)
     formula = model.formula
-    expected = "y = (\n\tx * 1.00000(+-0.00000)\n)"
+    expected = "y = (\n    x1 * 1.00000(+-0.00000)\n  + x2 * 1.00000(+-0.00000)\n)"
+    print()
+    print(formula)
+    print(expected)
     assert formula == expected
 
 
@@ -320,3 +330,65 @@ def test_samples_json():
     expected = {"_sigma": [0], "x": [1.0]}
 
     assert json.loads(model.samples_json) == expected
+
+
+def test_predict_ci():
+    """Test that predict makes sense when init from samples."""
+    df = pd.DataFrame(dict(x=[1.0, 2.0, 3.0, 4.0]))
+
+    class Model(Normal):
+        dv = "y"
+        features = dict(x=dict(transformer=lambda x: x.x, prior=dist.Normal(0, 1)))
+
+    # ci = yhat when no variation in samples
+    samples = {"x": onp.array([1.0] * 10), "_sigma": onp.array([1.0] * 10)}
+    model = Model().from_samples(samples)
+    pred = model.predict(df, ci=True).round(5).astype("float32")
+    assert pred.y.equals(pred.ci_lower)
+    assert pred.y.equals(pred.ci_upper)
+
+    # lower < yhat < upper when some variation in samples
+    samples = {"x": onp.random.normal(size=(10,)), "_sigma": onp.array([1.0] * 10)}
+    model = Model().from_samples(samples)
+    pred = model.predict(df, ci=True)
+    assert (pred.y > pred.ci_lower).all()
+    assert (pred.y < pred.ci_upper).all()
+
+
+def test_posterior_predict_static_key():
+    """Test that the posterior predictive is static when given a static key."""
+    df = pd.DataFrame(dict(x=[1.0, 2.0, 3.0, 4.0]))
+
+    class Model(Normal):
+        dv = "y"
+        features = dict(x=dict(transformer=1, prior=dist.Normal(0, 1)))
+
+    samples = {"x": onp.array([1.0] * 10), "_sigma": onp.array([1.0] * 10)}
+    model = Model().from_samples(samples)
+
+    rng_key = np.array([0, 0])
+
+    # are equal when rng is fixed
+    df1 = model.sample_posterior_predictive(df, hdpi=True, rng_key=rng_key)
+    df2 = model.sample_posterior_predictive(df, hdpi=True, rng_key=rng_key)
+    assert df1.equals(df2)
+
+    # unequal when not fixed.
+    df1 = model.sample_posterior_predictive(df, hdpi=True)
+    df2 = model.sample_posterior_predictive(df, hdpi=True)
+    assert not df1.equals(df2)
+
+
+def test_fit_static_key():
+    """Test that fit is static when given a static key."""
+    df = pd.DataFrame(dict(y=[1.0, 2.0, 3.0, 4.0]))
+
+    class Model(Normal):
+        dv = "y"
+        features = dict(x=dict(transformer=1, prior=dist.Normal(0, 1)))
+
+    rng_key = np.array([0, 0])
+
+    model1 = Model().fit(df, rng_key=rng_key, num_warmup=10, num_samples=20)
+    model2 = Model().fit(df, rng_key=rng_key, num_warmup=10, num_samples=20)
+    assert model1.samples_df.equals(model2.samples_df)

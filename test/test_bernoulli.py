@@ -52,15 +52,20 @@ def test_single_coef_is_about_right_fractional():
 
 def test_formula():
     """Test that the formula is as expected."""
-    samples = {"x": onp.array([1.0] * 10)}
+    samples = {"x1": onp.array([1.0] * 10), "x2": onp.array([1.0] * 10)}
 
     class Model(Bernoulli):
         dv = "y"
-        features = dict(x=dict(transformer=lambda x: x.x, prior=dist.Normal(0, 1)))
+        features = dict(
+            x1=dict(transformer=1, prior=dist.Normal(0, 1)),
+            x2=dict(transformer=2, prior=dist.Normal(0, 1)),
+        )
 
     model = Model().from_samples(samples)
     formula = model.formula
-    expected = "y = logistic(\n\tx * 1.00000(+-0.00000)\n)"
+    expected = (
+        "y = logistic(\n    x1 * 1.00000(+-0.00000)\n  + x2 * 1.00000(+-0.00000)\n)"
+    )
     assert formula == expected
 
 
@@ -87,8 +92,31 @@ def test_predict():
         dv = "y"
         features = dict(x=dict(transformer=lambda x: x.x, prior=dist.Normal(0, 1)))
 
-    samples = {"x": onp.array([1.0] * 10000000)}
+    samples = {"x": onp.array([1.0] * 10)}
     model = Model().from_samples(samples)
     pred = model.predict(df)
     logit_pred = logit(pred).round(2)
     assert df.x.astype("float32").equals(logit_pred.astype("float32"))
+
+
+def test_predict_ci():
+    """Test that predict makes sense when init from samples."""
+    df = pd.DataFrame(dict(x=[1.0, 2.0, 3.0, 4.0]))
+
+    class Model(Bernoulli):
+        dv = "y"
+        features = dict(x=dict(transformer=lambda x: x.x, prior=dist.Normal(0, 1)))
+
+    # ci = yhat when no variation in samples
+    samples = {"x": onp.array([1.0] * 10)}
+    model = Model().from_samples(samples)
+    pred = model.predict(df, ci=True).round(5).astype("float32")
+    assert pred.y.equals(pred.ci_lower)
+    assert pred.y.equals(pred.ci_upper)
+
+    # lower < yhat < upper when some variation in samples
+    samples = {"x": onp.random.normal(size=(100,)) * 0.1}
+    model = Model().from_samples(samples)
+    pred = model.predict(df, ci=True)
+    assert (pred.y > pred.ci_lower).all()
+    assert (pred.y < pred.ci_upper).all()

@@ -17,4 +17,5 @@ def test_metrics():
 
 
 def test_version():
+    """Test that the version file is included."""
     assert isinstance(shabadoo.__version__, str)

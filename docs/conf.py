@@ -18,6 +18,8 @@ exclude_patterns = []
 
 html_theme = "classic"
 html_static_path = []
+html_show_copyright = False
+html_show_sphinx = False
 
 if os.getenv("SPHINX_BUILD_PROD"):
     html_baseurl = "https://nolanbconaway.github.io/shabadoo/"

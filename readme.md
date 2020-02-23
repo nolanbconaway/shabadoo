@@ -5,6 +5,7 @@
 > "That's the worst name I ever heard."
 
 [![badge](https://github.com/nolanbconaway/shabadoo/workflows/Lint%20and%20Test/badge.svg)](https://github.com/nolanbconaway/shabadoo/actions?query=workflow%3A%22Lint+and+Test%22)
+[![badge](https://github.com/nolanbconaway/shabadoo/workflows/Scheduled%20Testing/badge.svg)](https://github.com/nolanbconaway/shabadoo/actions?query=workflow%3A%22Scheduled+Testing%22)
 [![codecov](https://codecov.io/gh/nolanbconaway/shabadoo/branch/master/graph/badge.svg?token=gIubsLSSHH)](https://codecov.io/gh/nolanbconaway/shabadoo)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/shabadoo)](https://pypi.org/project/shabadoo/)
 [![PyPI](https://img.shields.io/pypi/v/shabadoo)](https://pypi.org/project/shabadoo/)
@@ -76,6 +77,8 @@ model.predict(df)
 """
 ```
 
+Use `model.predict(df, ci=True)` to obtain a confidence interval around the model's prediction.
+
 ### Inspecting the model
 
 Shabadoo's model classes come with a number of model inspection methods. It should be easy to understand your model's composition and with Shabadoo it is!
@@ -89,8 +92,8 @@ print(model.formula)
 
 """
 y = (
-	const * 0.44200(+-0.63186)
-	x * 0.86728(+-0.22604)
+    const * 0.44200(+-0.63186)
+  + x * 0.86728(+-0.22604)
 )
 """
 ```

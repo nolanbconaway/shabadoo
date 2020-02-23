@@ -73,8 +73,11 @@ class BaseModel(ABC):
         """Return the likelihood distribution given predictions yhat."""
         pass
 
-    def __init__(self):
-        """Initialize the model opbject. Set some flags and runs some validations."""
+    def __init__(self, rng_seed: int = None):
+        """Initialize the model object. Set some flags and runs some validations.
+        
+        Optionally set the rng seed.
+        """
         if not self.features:
             raise TypeError(_no_features_message)
 
@@ -87,7 +90,9 @@ class BaseModel(ABC):
                     raise ValueError(f"Feature {name} does not have config {key}!")
 
         # this will be split each time randomness is needed.
-        self.rand_key = random.PRNGKey(randint(0, 10000))
+        self.rand_key = random.PRNGKey(
+            randint(0, 10000) if rng_seed is None else rng_seed
+        )
 
         self.fitted = False
 
@@ -187,7 +192,13 @@ class BaseModel(ABC):
         # otherwise, this is a post-fit predict call or something, do not include an obs.
         return numpyro.sample(self.dv, self.likelihood_func(yhat))
 
-    def fit(self, df: pd.DataFrame, sampler: str = "NUTS", **mcmc_kwargs):
+    def fit(
+        self,
+        df: pd.DataFrame,
+        sampler: str = "NUTS",
+        rng_key: np.ndarray = None,
+        **mcmc_kwargs,
+    ):
         """Fit the model to a DataFrame.
         
         Parameters
@@ -196,6 +207,8 @@ class BaseModel(ABC):
             Source dataframe.
         sampler : str
             Numpyro sampler name. Default NUTS
+        rng_key : two-element ndarray.
+            Optional rng key, will be randomly splitted if not provided.
         **mcmc_kwargs :
             Passed to numpyro.infer.MCMC
 
@@ -222,7 +235,10 @@ class BaseModel(ABC):
         mcmc = infer.MCMC(sampler(self.model), **_mcmc_kwargs)
 
         # do it
-        mcmc.run(self.split_rand_key(), df=df)
+        rng_key_ = (
+            self.split_rand_key() if rng_key is None else rng_key.astype("uint32")
+        )
+        mcmc.run(rng_key_, df=df)
 
         # store results
         self.samples = mcmc.get_samples()
@@ -231,37 +247,60 @@ class BaseModel(ABC):
         return self
 
     @classmethod
-    def pre_from_samples(self, samples: typing.Dict[str, np.ndarray]):
+    def pre_from_samples(cls, samples: typing.Dict[str, np.ndarray]):
         """Additional functionality to run before from_samples is called.
         
         Use it to check for required additional variables, etc.
         """
         pass
 
-    def predict(self, df: pd.DataFrame) -> pd.Series:
+    def predict(
+        self, df: pd.DataFrame, ci: bool = False, ci_interval: float = 0.9
+    ) -> typing.Union[pd.Series, pd.DataFrame]:
         """Return the average posterior prediction across all samples.
         
         Parameters
         ----------
         df : pd.DataFrame
             Source dataframe.
+        ci : float
+            Option to include a confidence interval around the predictions. Returns a 
+            dataframe if true, a series if false. Default False.
+        ci_interval : float
+            Confidence interval width. Default 0.9.
 
         Returns
         -------
-        pd.Series
-            Model predictions with matching index as the source df.
+        pd.Series or pd.DataFrame
+            Forecasts. Will be a series with the name of the dv if no ci. Will be a
+            dataframe if ci is included.
 
         """
         # matmul inputs * coefs, then send through link
-        yhat = self.link(
+        predictions = self.link(
             self.transform(df).values @ self.samples_df.transpose().values
-        ).mean(axis=1)
+        )
 
-        return pd.Series(yhat, index=df.index, name=self.dv)
+        if not ci:
+            return pd.Series(predictions.mean(axis=1), index=df.index, name=self.dv)
+
+        quantiles = onp.quantile(predictions, [1 - ci_interval, ci_interval], axis=1)
+        return pd.DataFrame(
+            {
+                self.dv: predictions.mean(axis=1),
+                "ci_lower": quantiles[0, :],
+                "ci_upper": quantiles[1, :],
+            },
+            index=df.index,
+        )
 
     @require_fitted
     def sample_posterior_predictive(
-        self, df: pd.DataFrame, hdpi: bool = False, hdpi_interval: float = 0.9
+        self,
+        df: pd.DataFrame,
+        hdpi: bool = False,
+        hdpi_interval: float = 0.9,
+        rng_key: np.ndarray = None,
     ) -> typing.Union[pd.Series, pd.DataFrame]:
         """Obtain samples from the posterior predictive.
         
@@ -274,6 +313,8 @@ class BaseModel(ABC):
             interval. Returns a dataframe if true, a series if false. Default False.
         hdpi_interval : float
             HDPI width. Default 0.9.
+        rng_key : two-element ndarray.
+            Optional rng key, will be randomly splitted if not provided.
 
         Returns
         -------
@@ -282,9 +323,15 @@ class BaseModel(ABC):
             dataframe if HDPI is included.
 
         """
-        predictions = infer.Predictive(self.model, self.samples)(
-            self.split_rand_key(), df=df
-        )[self.dv]
+        # get rng key
+        rng_key_ = (
+            self.split_rand_key() if rng_key is None else rng_key.astype("uint32")
+        )
+
+        #  do it
+        predictions = infer.Predictive(self.model, self.samples)(rng_key_, df=df)[
+            self.dv
+        ]
 
         if not hdpi:
             return pd.Series(predictions.mean(axis=0), index=df.index, name=self.dv)
@@ -313,14 +360,16 @@ class BaseModel(ABC):
         return json.dumps({k: list(map(float, v)) for k, v in self.samples.items()})
 
     @classmethod
-    def from_samples(cls, samples: typing.Dict[str, np.ndarray]):
+    def from_samples(cls, samples: typing.Dict[str, np.ndarray], **model_kw):
         """Return a pre-fitted model given its samples.
         
         Parameters
         ----------
         samples : dict mapping string feature name to -> numpy array samples.
             MCMC samples.
-
+        kwargs
+            passed to Model() init.
+    
         Returns
         -------
         Model
@@ -333,7 +382,7 @@ class BaseModel(ABC):
             if feature_name not in samples:
                 raise KeyError(f"No samples for feature {feature_name}!")
 
-        model = cls()
+        model = cls(**model_kw)
         model.fitted = True
 
         # make jax arrays when needed
@@ -427,11 +476,17 @@ class BaseModel(ABC):
         """Return a formula string describing the model."""
         descriptives = self.samples_df.describe()
         formula_template = f"{self.dv} = " + self._formula_link_str
-
+        print(descriptives)
         # get a string rep from each descriptive column. this will be for each feature:
         #       x * mu(+-sd)
         def get_str(x):
-            return "\t" + f"""{x.name} * {x['mean']:0.5f}(+-{x['std']:0.5f})"""
+            mu = x["mean"]
+            sd = x["std"]
+            if x.name == descriptives.columns.values[0]:
+                prefix = "    "
+            else:
+                prefix = "  + "
+            return prefix + f"""{x.name} * {mu:0.5f}(+-{sd:0.5f})"""
 
         lc = "\n".join(descriptives.apply(get_str, axis=0).tolist())
         return formula_template.format(lc=lc)
