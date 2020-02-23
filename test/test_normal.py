@@ -353,3 +353,42 @@ def test_predict_ci():
     pred = model.predict(df, ci=True)
     assert (pred.y > pred.ci_lower).all()
     assert (pred.y < pred.ci_upper).all()
+
+
+def test_posterior_predict_static_key():
+    """Test that the posterior predictive is static when given a static key."""
+    df = pd.DataFrame(dict(x=[1.0, 2.0, 3.0, 4.0]))
+
+    class Model(Normal):
+        dv = "y"
+        features = dict(x=dict(transformer=1, prior=dist.Normal(0, 1)))
+
+    samples = {"x": onp.array([1.0] * 10), "_sigma": onp.array([1.0] * 10)}
+    model = Model().from_samples(samples)
+
+    rng_key = np.array([0, 0])
+
+    # are equal when rng is fixed
+    df1 = model.sample_posterior_predictive(df, hdpi=True, rng_key=rng_key)
+    df2 = model.sample_posterior_predictive(df, hdpi=True, rng_key=rng_key)
+    assert df1.equals(df2)
+
+    # unequal when not fixed.
+    df1 = model.sample_posterior_predictive(df, hdpi=True)
+    df2 = model.sample_posterior_predictive(df, hdpi=True)
+    assert not df1.equals(df2)
+
+
+def test_fit_static_key():
+    """Test that fit is static when given a static key."""
+    df = pd.DataFrame(dict(y=[1.0, 2.0, 3.0, 4.0]))
+
+    class Model(Normal):
+        dv = "y"
+        features = dict(x=dict(transformer=1, prior=dist.Normal(0, 1)))
+
+    rng_key = np.array([0, 0])
+
+    model1 = Model().fit(df, rng_key=rng_key, num_warmup=10, num_samples=20)
+    model2 = Model().fit(df, rng_key=rng_key, num_warmup=10, num_samples=20)
+    assert model1.samples_df.equals(model2.samples_df)
