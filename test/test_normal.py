@@ -392,3 +392,20 @@ def test_fit_static_key():
     model1 = Model().fit(df, rng_key=rng_key, num_warmup=10, num_samples=20)
     model2 = Model().fit(df, rng_key=rng_key, num_warmup=10, num_samples=20)
     assert model1.samples_df.equals(model2.samples_df)
+
+
+@pytest.mark.parametrize(
+    "func, expected",
+    [("mean", 2), ("sum", 6), ("min", 1), (onp.mean, 2), (onp.sum, 6), (onp.min, 1)],
+)
+def test_predict_aggfuncs(func, expected):
+    """Test that fit is static when given a static key."""
+    df = pd.DataFrame(dict(x=[1.0]))
+    samples = {"x": onp.array([1.0, 2.0, 3.0]), "_sigma": onp.array([1.0, 1.0, 1.0])}
+
+    class Model(Normal):
+        dv = "y"
+        features = dict(x=dict(transformer=lambda x: x.x, prior=dist.Normal(0, 1)))
+
+    pred = Model().from_samples(samples).predict(df, aggfunc=func).iloc[0]
+    assert pred == expected

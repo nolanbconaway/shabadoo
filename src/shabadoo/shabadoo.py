@@ -255,7 +255,11 @@ class BaseModel(ABC):
         pass
 
     def predict(
-        self, df: pd.DataFrame, ci: bool = False, ci_interval: float = 0.9
+        self,
+        df: pd.DataFrame,
+        ci: bool = False,
+        ci_interval: float = 0.9,
+        aggfunc: typing.Union[str, typing.Callable] = "mean",
     ) -> typing.Union[pd.Series, pd.DataFrame]:
         """Return the average posterior prediction across all samples.
         
@@ -268,6 +272,9 @@ class BaseModel(ABC):
             dataframe if true, a series if false. Default False.
         ci_interval : float
             Confidence interval width. Default 0.9.
+        aggfunc : string or callable
+            Aggregation function called over predictions across posterior samples. 
+            Applies only to the point prediction (not the CI).
 
         Returns
         -------
@@ -276,21 +283,22 @@ class BaseModel(ABC):
             dataframe if ci is included.
 
         """
+        # get aggfunc if a string
+        if not callable(aggfunc):
+            aggfunc = getattr(onp, aggfunc)
+
         # matmul inputs * coefs, then send through link
         predictions = self.link(
             self.transform(df).values @ self.samples_df.transpose().values
         )
+        yhat = aggfunc(predictions, axis=1)
 
         if not ci:
-            return pd.Series(predictions.mean(axis=1), index=df.index, name=self.dv)
+            return pd.Series(yhat, index=df.index, name=self.dv)
 
         quantiles = onp.quantile(predictions, [1 - ci_interval, ci_interval], axis=1)
         return pd.DataFrame(
-            {
-                self.dv: predictions.mean(axis=1),
-                "ci_lower": quantiles[0, :],
-                "ci_upper": quantiles[1, :],
-            },
+            {self.dv: yhat, "ci_lower": quantiles[0, :], "ci_upper": quantiles[1, :],},
             index=df.index,
         )
 
