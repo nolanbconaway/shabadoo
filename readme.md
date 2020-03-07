@@ -12,6 +12,8 @@
 
 Shabadoo is the worst kind of machine learning. It automates nothing; your models will not perform well and it will be your own fault. 
 
+> **BEWARE**. Shabadoo is in an open alpha phase. It is authored by someone who does not know how to manage open source projects. Things will change as the author identifies mistakes and corrects (?) them.
+
 Shabadoo is for people who want to do Bayesian regression but who do not want to write probabilistic programming code. You only need to assign priors to features and pass your pandas dataframe to a `.fit()` / `.predict()` API.
 
 Shabadoo runs on [numpyro](http://num.pyro.ai/) and is basically a wrapper around the [numpyro Bayesian regression tutorial](https://pyro.ai/numpyro/bayesian_regression.html).

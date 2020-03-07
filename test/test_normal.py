@@ -12,6 +12,7 @@ import pandas as pd
 import pytest
 from numpyro import distributions as dist
 
+import shabadoo.exceptions as exceptions
 from shabadoo import Normal
 
 
@@ -54,21 +55,27 @@ def test_rand_key_splitter():
 def test_no_feature_exception():
     """Test the exception when features are not defined."""
 
-    class Model(Normal):
+    class NoFeatsModel(Normal):
         dv = "y"
 
-    with pytest.raises(TypeError):
-        Model()
+    with pytest.raises(exceptions.IncompleteModel) as e:
+        NoFeatsModel()
+
+    assert "NoFeatsModel" in str(e.value)
+    assert "features" in str(e.value)
 
 
 def test_no_dv_exception():
     """Test the exception when dv is not defined."""
 
-    class Model(Normal):
+    class NoDVModel(Normal):
         features = dict(x=dict(transformer=1, prior=dist.Normal(0, 1)))
 
-    with pytest.raises(TypeError):
-        Model()
+    with pytest.raises(exceptions.IncompleteModel) as e:
+        NoDVModel()
+
+    assert "NoDVModel" in str(e.value)
+    assert "dv" in str(e.value)
 
 
 def test_require_fitted_exception():
@@ -78,23 +85,27 @@ def test_require_fitted_exception():
         dv = "y"
         features = dict(x=dict(transformer=1, prior=dist.Normal(0, 1)))
 
-    with pytest.raises(TypeError):
+    with pytest.raises(exceptions.NotFittedError) as e:
         Model().formula
+
+    assert "formula" in str(e.value)
 
 
 def test_refit_exception():
     """Test the exception raised when re-fitting."""
     df = pd.DataFrame(dict(x=[1.0, 2.0, 3.0, 4.0], y=1))
 
-    class Model(Normal):
+    class PreFitModel(Normal):
         dv = "y"
         features = dict(x=dict(transformer=lambda x: x.x, prior=dist.Normal(0, 1)))
 
     samples = {"x": onp.array([1.0]), "_sigma": onp.array([0])}
-    model = Model().from_samples(samples)
+    model = PreFitModel().from_samples(samples)
 
-    with pytest.raises(TypeError):
+    with pytest.raises(exceptions.AlreadyFittedError) as e:
         model.fit(df)
+
+    assert "PreFitModel" in str(e.value)
 
 
 def test_invalid_sampler_exception():
@@ -117,11 +128,15 @@ def test_missing_samples_exception():
         dv = "y"
         features = dict(x=dict(transformer=lambda x: x.x, prior=dist.Normal(0, 1)))
 
-    with pytest.raises(KeyError):
+    with pytest.raises(exceptions.IncompleteSamples) as e:
         Model().from_samples({"_sigma": onp.array([0])})
 
-    with pytest.raises(KeyError):
+    assert "x" in str(e.value)
+
+    with pytest.raises(exceptions.IncompleteSamples) as e:
         Model().from_samples({"x": onp.array([0])})
+
+    assert "_sigma" in str(e.value)
 
 
 def test_incomplete_feature_exception():
@@ -131,8 +146,11 @@ def test_incomplete_feature_exception():
         dv = "y"
         features = dict(x=dict(transformer=1))
 
-    with pytest.raises(ValueError):
+    with pytest.raises(exceptions.IncompleteFeature) as e:
         Model()
+
+    assert "x" in str(e.value)
+    assert "prior" in str(e.value)
 
 
 def test_transform():
@@ -209,9 +227,6 @@ def test_formula():
     model = Model().from_samples(samples)
     formula = model.formula
     expected = "y = (\n    x1 * 1.00000(+-0.00000)\n  + x2 * 1.00000(+-0.00000)\n)"
-    print()
-    print(formula)
-    print(expected)
     assert formula == expected
 
 
@@ -392,3 +407,20 @@ def test_fit_static_key():
     model1 = Model().fit(df, rng_key=rng_key, num_warmup=10, num_samples=20)
     model2 = Model().fit(df, rng_key=rng_key, num_warmup=10, num_samples=20)
     assert model1.samples_df.equals(model2.samples_df)
+
+
+@pytest.mark.parametrize(
+    "func, expected",
+    [("mean", 2), ("sum", 6), ("min", 1), (onp.mean, 2), (onp.sum, 6), (onp.min, 1)],
+)
+def test_predict_aggfuncs(func, expected):
+    """Test that fit is static when given a static key."""
+    df = pd.DataFrame(dict(x=[1.0]))
+    samples = {"x": onp.array([1.0, 2.0, 3.0]), "_sigma": onp.array([1.0, 1.0, 1.0])}
+
+    class Model(Normal):
+        dv = "y"
+        features = dict(x=dict(transformer=lambda x: x.x, prior=dist.Normal(0, 1)))
+
+    pred = Model().from_samples(samples).predict(df, aggfunc=func).iloc[0]
+    assert pred == expected

@@ -16,17 +16,7 @@ from numpyro import diagnostics
 from numpyro import distributions as dist
 from numpyro import infer
 
-# exception message raised when features is empty.
-_no_features_message = """\
-features are not defined! Define a class attribute (features) which is a dictionary of 
-dictionaries like 
-{
-    'log_x': {
-        'transformer': lambda df: np.log(df.x),    # .assign() call on DataFrame
-        'prior': dist.Normal(0.0, 1.0),            # numpyro distribution
-    }
-}
-"""
+from . import exceptions
 
 
 def require_fitted(f):
@@ -35,7 +25,7 @@ def require_fitted(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
         if not args or not getattr(args[0], "fitted"):
-            raise TypeError(f"Unable to call {f.__name__} before fitting model.")
+            raise exceptions.NotFittedError(f)
         return f(*args, **kwargs)
 
     return wrapper
@@ -79,15 +69,15 @@ class BaseModel(ABC):
         Optionally set the rng seed.
         """
         if not self.features:
-            raise TypeError(_no_features_message)
+            raise exceptions.IncompleteModel(self, "features")
 
         if not self.dv:
-            raise TypeError("No dv defined!")
+            raise exceptions.IncompleteModel(self, "dv")
 
         for name, feature in self.features.items():
             for key in ("transformer", "prior"):
                 if key not in feature:
-                    raise ValueError(f"Feature {name} does not have config {key}!")
+                    raise exceptions.IncompleteFeature(name, key)
 
         # this will be split each time randomness is needed.
         self.rand_key = random.PRNGKey(
@@ -181,7 +171,10 @@ class BaseModel(ABC):
         # we should never see an unfitted model being run without the dv
         # as the dv should always be present for fitting
         if not self.fitted and self.dv not in df.columns:
-            raise ValueError("Cannot run an unfitted model without the dv present!")
+            raise RuntimeError(
+                "Trying to run an unfitted model without the dv present. "
+                + "Something has gone wrong."
+            )
 
         # if model is not fitted, this MUST be the call to .fit(), so add the obs.
         if not self.fitted:
@@ -197,6 +190,7 @@ class BaseModel(ABC):
         df: pd.DataFrame,
         sampler: str = "NUTS",
         rng_key: np.ndarray = None,
+        sampler_kwargs: typing.Dict[str, typing.Any] = None,
         **mcmc_kwargs,
     ):
         """Fit the model to a DataFrame.
@@ -209,6 +203,8 @@ class BaseModel(ABC):
             Numpyro sampler name. Default NUTS
         rng_key : two-element ndarray.
             Optional rng key, will be randomly splitted if not provided.
+        sampler_kwargs :
+            Passed to the numpyro sampler selected.
         **mcmc_kwargs :
             Passed to numpyro.infer.MCMC
 
@@ -219,7 +215,7 @@ class BaseModel(ABC):
 
         """
         if self.fitted:
-            raise TypeError("Cannot re-fit a model!")
+            raise exceptions.AlreadyFittedError(self)
 
         if sampler.upper() not in ("NUTS", "HMC"):
             raise ValueError("Invalid sampler, try NUTS or HMC.")
@@ -232,7 +228,9 @@ class BaseModel(ABC):
         # set up mcmc
         _mcmc_kwargs = dict(num_warmup=500, num_samples=1000)
         _mcmc_kwargs.update(mcmc_kwargs)
-        mcmc = infer.MCMC(sampler(self.model), **_mcmc_kwargs)
+        _sampler_kwargs = dict(model=self.model)
+        _sampler_kwargs.update(sampler_kwargs or {})
+        mcmc = infer.MCMC(sampler(**_sampler_kwargs), **_mcmc_kwargs)
 
         # do it
         rng_key_ = (
@@ -255,7 +253,11 @@ class BaseModel(ABC):
         pass
 
     def predict(
-        self, df: pd.DataFrame, ci: bool = False, ci_interval: float = 0.9
+        self,
+        df: pd.DataFrame,
+        ci: bool = False,
+        ci_interval: float = 0.9,
+        aggfunc: typing.Union[str, typing.Callable] = "mean",
     ) -> typing.Union[pd.Series, pd.DataFrame]:
         """Return the average posterior prediction across all samples.
         
@@ -268,6 +270,9 @@ class BaseModel(ABC):
             dataframe if true, a series if false. Default False.
         ci_interval : float
             Confidence interval width. Default 0.9.
+        aggfunc : string or callable
+            Aggregation function called over predictions across posterior samples. 
+            Applies only to the point prediction (not the CI).
 
         Returns
         -------
@@ -276,21 +281,22 @@ class BaseModel(ABC):
             dataframe if ci is included.
 
         """
+        # get aggfunc if a string
+        if not callable(aggfunc):
+            aggfunc = getattr(onp, aggfunc)
+
         # matmul inputs * coefs, then send through link
         predictions = self.link(
             self.transform(df).values @ self.samples_df.transpose().values
         )
+        yhat = aggfunc(predictions, axis=1)
 
         if not ci:
-            return pd.Series(predictions.mean(axis=1), index=df.index, name=self.dv)
+            return pd.Series(yhat, index=df.index, name=self.dv)
 
         quantiles = onp.quantile(predictions, [1 - ci_interval, ci_interval], axis=1)
         return pd.DataFrame(
-            {
-                self.dv: predictions.mean(axis=1),
-                "ci_lower": quantiles[0, :],
-                "ci_upper": quantiles[1, :],
-            },
+            {self.dv: yhat, "ci_lower": quantiles[0, :], "ci_upper": quantiles[1, :],},
             index=df.index,
         )
 
@@ -380,7 +386,7 @@ class BaseModel(ABC):
         # check that all keys are there
         for feature_name in cls.features.keys():
             if feature_name not in samples:
-                raise KeyError(f"No samples for feature {feature_name}!")
+                raise exceptions.IncompleteSamples(feature_name)
 
         model = cls(**model_kw)
         model.fitted = True
@@ -476,7 +482,7 @@ class BaseModel(ABC):
         """Return a formula string describing the model."""
         descriptives = self.samples_df.describe()
         formula_template = f"{self.dv} = " + self._formula_link_str
-        print(descriptives)
+
         # get a string rep from each descriptive column. this will be for each feature:
         #       x * mu(+-sd)
         def get_str(x):
@@ -511,7 +517,7 @@ class Normal(BaseModel):
     def pre_from_samples(cls, samples: typing.Dict[str, np.ndarray]):
         """Check for sigma before init from samples."""
         if "_sigma" not in samples:
-            raise KeyError("No samples for feature _sigma!")
+            raise exceptions.IncompleteSamples("_sigma")
 
 
 class Poisson(BaseModel):

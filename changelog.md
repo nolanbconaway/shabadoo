@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.4] - 2020-02-23
+
+- Fixes #17: Support an aggfunc option for .predict
+- Fixes #15: Custom errors for better exception catching 
+- Add `sampler_kwargs` to .fit() so that users can tune the sampler.
+
 ## [0.0.3] - 2020-02-23
 
 - Fixes #14 - A bug in which the formula printer did not include plus signs.
