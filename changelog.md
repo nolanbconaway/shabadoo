@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.0.4] - 2020-02-23
+## [0.0.4] - 2020-03-07
 
 - Fixes #17: Support an aggfunc option for .predict
 - Fixes #15: Custom errors for better exception catching 
