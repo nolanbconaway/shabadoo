@@ -227,9 +227,6 @@ def test_formula():
     model = Model().from_samples(samples)
     formula = model.formula
     expected = "y = (\n    x1 * 1.00000(+-0.00000)\n  + x2 * 1.00000(+-0.00000)\n)"
-    print()
-    print(formula)
-    print(expected)
     assert formula == expected
 
 
