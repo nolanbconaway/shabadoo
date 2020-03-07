@@ -65,7 +65,7 @@
 <dd><p>Gaussian/normal family model for the generic regression model.</p>
 <dl class="method">
 <dt id="shabadoo.Normal.fit">
-<code class="sig-name descname">fit</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">df: pandas.core.frame.DataFrame</em>, <em class="sig-param">sampler: str = 'NUTS'</em>, <em class="sig-param">rng_key: jax.numpy.lax_numpy.ndarray = None</em>, <em class="sig-param">**mcmc_kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#shabadoo.Normal.fit" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">fit</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">df: pandas.core.frame.DataFrame</em>, <em class="sig-param">sampler: str = 'NUTS'</em>, <em class="sig-param">rng_key: jax.numpy.lax_numpy.ndarray = None</em>, <em class="sig-param">sampler_kwargs: Dict[str</em>, <em class="sig-param">Any] = None</em>, <em class="sig-param">**mcmc_kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#shabadoo.Normal.fit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Fit the model to a DataFrame.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -73,6 +73,7 @@
 <li><p><strong>df</strong> (<em>pd.DataFrame</em>) – Source dataframe.</p></li>
 <li><p><strong>sampler</strong> (<em>str</em>) – Numpyro sampler name. Default NUTS</p></li>
 <li><p><strong>rng_key</strong> (<em>two-element ndarray.</em>) – Optional rng key, will be randomly splitted if not provided.</p></li>
+<li><p><strong>sampler_kwargs</strong> – Passed to the numpyro sampler selected.</p></li>
 <li><p><strong>**mcmc_kwargs</strong> – Passed to numpyro.infer.MCMC</p></li>
 </ul>
 </dd>
@@ -113,7 +114,7 @@
 
 <dl class="method">
 <dt id="shabadoo.Normal.grouped_metrics">
-<code class="sig-name descname">grouped_metrics</code><span class="sig-paren">(</span><em class="sig-param">self, df: pandas.core.frame.DataFrame, groupby: Union[str, List[str]], aggfunc: Callable = &lt;function sum at 0x7fb108457ef0&gt;, aggerrs: bool = True</em><span class="sig-paren">)</span> &#x2192; Union[pandas.core.frame.DataFrame, Dict[str, float]]<a class="headerlink" href="#shabadoo.Normal.grouped_metrics" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">grouped_metrics</code><span class="sig-paren">(</span><em class="sig-param">self, df: pandas.core.frame.DataFrame, groupby: Union[str, List[str]], aggfunc: Callable = &lt;function sum at 0x7f7c462e7050&gt;, aggerrs: bool = True</em><span class="sig-paren">)</span> &#x2192; Union[pandas.core.frame.DataFrame, Dict[str, float]]<a class="headerlink" href="#shabadoo.Normal.grouped_metrics" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return grouped accuracy metrics.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -196,7 +197,7 @@ pointwise errors are returned as a DataFrame.</p>
 
 <dl class="method">
 <dt id="shabadoo.Normal.predict">
-<code class="sig-name descname">predict</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">df: pandas.core.frame.DataFrame</em>, <em class="sig-param">ci: bool = False</em>, <em class="sig-param">ci_interval: float = 0.9</em><span class="sig-paren">)</span> &#x2192; Union[pandas.core.series.Series, pandas.core.frame.DataFrame]<a class="headerlink" href="#shabadoo.Normal.predict" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">predict</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">df: pandas.core.frame.DataFrame</em>, <em class="sig-param">ci: bool = False</em>, <em class="sig-param">ci_interval: float = 0.9</em>, <em class="sig-param">aggfunc: Union[str</em>, <em class="sig-param">Callable] = 'mean'</em><span class="sig-paren">)</span> &#x2192; Union[pandas.core.series.Series, pandas.core.frame.DataFrame]<a class="headerlink" href="#shabadoo.Normal.predict" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the average posterior prediction across all samples.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -205,6 +206,8 @@ pointwise errors are returned as a DataFrame.</p>
 <li><p><strong>ci</strong> (<em>float</em>) – Option to include a confidence interval around the predictions. Returns a
 dataframe if true, a series if false. Default False.</p></li>
 <li><p><strong>ci_interval</strong> (<em>float</em>) – Confidence interval width. Default 0.9.</p></li>
+<li><p><strong>aggfunc</strong> (<em>string</em><em> or </em><em>callable</em>) – Aggregation function called over predictions across posterior samples.
+Applies only to the point prediction (not the CI).</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -255,7 +258,7 @@ dataframe if HDPI is included.</p>
 
 <dl class="method">
 <dt id="shabadoo.Normal.split_rand_key">
-<code class="sig-name descname">split_rand_key</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">n: int = 1</em><span class="sig-paren">)</span> &#x2192; &lt;function PRNGKey at 0x7fb0f9812710&gt;<a class="headerlink" href="#shabadoo.Normal.split_rand_key" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">split_rand_key</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">n: int = 1</em><span class="sig-paren">)</span> &#x2192; &lt;function PRNGKey at 0x7f7c372d59e0&gt;<a class="headerlink" href="#shabadoo.Normal.split_rand_key" title="Permalink to this definition">¶</a></dt>
 <dd><p>Split the random key, assign a new key and return the subkeys.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -295,7 +298,7 @@ dataframe if HDPI is included.</p>
 <dd><p>Logistic/bernoulli family model, for a binary response variable.</p>
 <dl class="method">
 <dt id="shabadoo.Bernoulli.fit">
-<code class="sig-name descname">fit</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">df: pandas.core.frame.DataFrame</em>, <em class="sig-param">sampler: str = 'NUTS'</em>, <em class="sig-param">rng_key: jax.numpy.lax_numpy.ndarray = None</em>, <em class="sig-param">**mcmc_kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#shabadoo.Bernoulli.fit" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">fit</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">df: pandas.core.frame.DataFrame</em>, <em class="sig-param">sampler: str = 'NUTS'</em>, <em class="sig-param">rng_key: jax.numpy.lax_numpy.ndarray = None</em>, <em class="sig-param">sampler_kwargs: Dict[str</em>, <em class="sig-param">Any] = None</em>, <em class="sig-param">**mcmc_kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#shabadoo.Bernoulli.fit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Fit the model to a DataFrame.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -303,6 +306,7 @@ dataframe if HDPI is included.</p>
 <li><p><strong>df</strong> (<em>pd.DataFrame</em>) – Source dataframe.</p></li>
 <li><p><strong>sampler</strong> (<em>str</em>) – Numpyro sampler name. Default NUTS</p></li>
 <li><p><strong>rng_key</strong> (<em>two-element ndarray.</em>) – Optional rng key, will be randomly splitted if not provided.</p></li>
+<li><p><strong>sampler_kwargs</strong> – Passed to the numpyro sampler selected.</p></li>
 <li><p><strong>**mcmc_kwargs</strong> – Passed to numpyro.infer.MCMC</p></li>
 </ul>
 </dd>
@@ -343,7 +347,7 @@ dataframe if HDPI is included.</p>
 
 <dl class="method">
 <dt id="shabadoo.Bernoulli.grouped_metrics">
-<code class="sig-name descname">grouped_metrics</code><span class="sig-paren">(</span><em class="sig-param">self, df: pandas.core.frame.DataFrame, groupby: Union[str, List[str]], aggfunc: Callable = &lt;function sum at 0x7fb108457ef0&gt;, aggerrs: bool = True</em><span class="sig-paren">)</span> &#x2192; Union[pandas.core.frame.DataFrame, Dict[str, float]]<a class="headerlink" href="#shabadoo.Bernoulli.grouped_metrics" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">grouped_metrics</code><span class="sig-paren">(</span><em class="sig-param">self, df: pandas.core.frame.DataFrame, groupby: Union[str, List[str]], aggfunc: Callable = &lt;function sum at 0x7f7c462e7050&gt;, aggerrs: bool = True</em><span class="sig-paren">)</span> &#x2192; Union[pandas.core.frame.DataFrame, Dict[str, float]]<a class="headerlink" href="#shabadoo.Bernoulli.grouped_metrics" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return grouped accuracy metrics.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -427,7 +431,7 @@ pointwise errors are returned as a DataFrame.</p>
 
 <dl class="method">
 <dt id="shabadoo.Bernoulli.predict">
-<code class="sig-name descname">predict</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">df: pandas.core.frame.DataFrame</em>, <em class="sig-param">ci: bool = False</em>, <em class="sig-param">ci_interval: float = 0.9</em><span class="sig-paren">)</span> &#x2192; Union[pandas.core.series.Series, pandas.core.frame.DataFrame]<a class="headerlink" href="#shabadoo.Bernoulli.predict" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">predict</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">df: pandas.core.frame.DataFrame</em>, <em class="sig-param">ci: bool = False</em>, <em class="sig-param">ci_interval: float = 0.9</em>, <em class="sig-param">aggfunc: Union[str</em>, <em class="sig-param">Callable] = 'mean'</em><span class="sig-paren">)</span> &#x2192; Union[pandas.core.series.Series, pandas.core.frame.DataFrame]<a class="headerlink" href="#shabadoo.Bernoulli.predict" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the average posterior prediction across all samples.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -436,6 +440,8 @@ pointwise errors are returned as a DataFrame.</p>
 <li><p><strong>ci</strong> (<em>float</em>) – Option to include a confidence interval around the predictions. Returns a
 dataframe if true, a series if false. Default False.</p></li>
 <li><p><strong>ci_interval</strong> (<em>float</em>) – Confidence interval width. Default 0.9.</p></li>
+<li><p><strong>aggfunc</strong> (<em>string</em><em> or </em><em>callable</em>) – Aggregation function called over predictions across posterior samples.
+Applies only to the point prediction (not the CI).</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -486,7 +492,7 @@ dataframe if HDPI is included.</p>
 
 <dl class="method">
 <dt id="shabadoo.Bernoulli.split_rand_key">
-<code class="sig-name descname">split_rand_key</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">n: int = 1</em><span class="sig-paren">)</span> &#x2192; &lt;function PRNGKey at 0x7fb0f9812710&gt;<a class="headerlink" href="#shabadoo.Bernoulli.split_rand_key" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">split_rand_key</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">n: int = 1</em><span class="sig-paren">)</span> &#x2192; &lt;function PRNGKey at 0x7f7c372d59e0&gt;<a class="headerlink" href="#shabadoo.Bernoulli.split_rand_key" title="Permalink to this definition">¶</a></dt>
 <dd><p>Split the random key, assign a new key and return the subkeys.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -526,7 +532,7 @@ dataframe if HDPI is included.</p>
 <dd><p>Exponential/poisson family model for rate data.</p>
 <dl class="method">
 <dt id="shabadoo.Poisson.fit">
-<code class="sig-name descname">fit</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">df: pandas.core.frame.DataFrame</em>, <em class="sig-param">sampler: str = 'NUTS'</em>, <em class="sig-param">rng_key: jax.numpy.lax_numpy.ndarray = None</em>, <em class="sig-param">**mcmc_kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#shabadoo.Poisson.fit" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">fit</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">df: pandas.core.frame.DataFrame</em>, <em class="sig-param">sampler: str = 'NUTS'</em>, <em class="sig-param">rng_key: jax.numpy.lax_numpy.ndarray = None</em>, <em class="sig-param">sampler_kwargs: Dict[str</em>, <em class="sig-param">Any] = None</em>, <em class="sig-param">**mcmc_kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#shabadoo.Poisson.fit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Fit the model to a DataFrame.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -534,6 +540,7 @@ dataframe if HDPI is included.</p>
 <li><p><strong>df</strong> (<em>pd.DataFrame</em>) – Source dataframe.</p></li>
 <li><p><strong>sampler</strong> (<em>str</em>) – Numpyro sampler name. Default NUTS</p></li>
 <li><p><strong>rng_key</strong> (<em>two-element ndarray.</em>) – Optional rng key, will be randomly splitted if not provided.</p></li>
+<li><p><strong>sampler_kwargs</strong> – Passed to the numpyro sampler selected.</p></li>
 <li><p><strong>**mcmc_kwargs</strong> – Passed to numpyro.infer.MCMC</p></li>
 </ul>
 </dd>
@@ -574,7 +581,7 @@ dataframe if HDPI is included.</p>
 
 <dl class="method">
 <dt id="shabadoo.Poisson.grouped_metrics">
-<code class="sig-name descname">grouped_metrics</code><span class="sig-paren">(</span><em class="sig-param">self, df: pandas.core.frame.DataFrame, groupby: Union[str, List[str]], aggfunc: Callable = &lt;function sum at 0x7fb108457ef0&gt;, aggerrs: bool = True</em><span class="sig-paren">)</span> &#x2192; Union[pandas.core.frame.DataFrame, Dict[str, float]]<a class="headerlink" href="#shabadoo.Poisson.grouped_metrics" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">grouped_metrics</code><span class="sig-paren">(</span><em class="sig-param">self, df: pandas.core.frame.DataFrame, groupby: Union[str, List[str]], aggfunc: Callable = &lt;function sum at 0x7f7c462e7050&gt;, aggerrs: bool = True</em><span class="sig-paren">)</span> &#x2192; Union[pandas.core.frame.DataFrame, Dict[str, float]]<a class="headerlink" href="#shabadoo.Poisson.grouped_metrics" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return grouped accuracy metrics.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -658,7 +665,7 @@ pointwise errors are returned as a DataFrame.</p>
 
 <dl class="method">
 <dt id="shabadoo.Poisson.predict">
-<code class="sig-name descname">predict</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">df: pandas.core.frame.DataFrame</em>, <em class="sig-param">ci: bool = False</em>, <em class="sig-param">ci_interval: float = 0.9</em><span class="sig-paren">)</span> &#x2192; Union[pandas.core.series.Series, pandas.core.frame.DataFrame]<a class="headerlink" href="#shabadoo.Poisson.predict" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">predict</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">df: pandas.core.frame.DataFrame</em>, <em class="sig-param">ci: bool = False</em>, <em class="sig-param">ci_interval: float = 0.9</em>, <em class="sig-param">aggfunc: Union[str</em>, <em class="sig-param">Callable] = 'mean'</em><span class="sig-paren">)</span> &#x2192; Union[pandas.core.series.Series, pandas.core.frame.DataFrame]<a class="headerlink" href="#shabadoo.Poisson.predict" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the average posterior prediction across all samples.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -667,6 +674,8 @@ pointwise errors are returned as a DataFrame.</p>
 <li><p><strong>ci</strong> (<em>float</em>) – Option to include a confidence interval around the predictions. Returns a
 dataframe if true, a series if false. Default False.</p></li>
 <li><p><strong>ci_interval</strong> (<em>float</em>) – Confidence interval width. Default 0.9.</p></li>
+<li><p><strong>aggfunc</strong> (<em>string</em><em> or </em><em>callable</em>) – Aggregation function called over predictions across posterior samples.
+Applies only to the point prediction (not the CI).</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -717,7 +726,7 @@ dataframe if HDPI is included.</p>
 
 <dl class="method">
 <dt id="shabadoo.Poisson.split_rand_key">
-<code class="sig-name descname">split_rand_key</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">n: int = 1</em><span class="sig-paren">)</span> &#x2192; &lt;function PRNGKey at 0x7fb0f9812710&gt;<a class="headerlink" href="#shabadoo.Poisson.split_rand_key" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">split_rand_key</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">n: int = 1</em><span class="sig-paren">)</span> &#x2192; &lt;function PRNGKey at 0x7f7c372d59e0&gt;<a class="headerlink" href="#shabadoo.Poisson.split_rand_key" title="Permalink to this definition">¶</a></dt>
 <dd><p>Split the random key, assign a new key and return the subkeys.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
