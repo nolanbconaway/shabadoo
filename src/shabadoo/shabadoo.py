@@ -190,6 +190,7 @@ class BaseModel(ABC):
         df: pd.DataFrame,
         sampler: str = "NUTS",
         rng_key: np.ndarray = None,
+        sampler_kwargs: typing.Dict[str, typing.Any] = None,
         **mcmc_kwargs,
     ):
         """Fit the model to a DataFrame.
@@ -202,6 +203,8 @@ class BaseModel(ABC):
             Numpyro sampler name. Default NUTS
         rng_key : two-element ndarray.
             Optional rng key, will be randomly splitted if not provided.
+        sampler_kwargs :
+            Passed to the numpyro sampler selected.
         **mcmc_kwargs :
             Passed to numpyro.infer.MCMC
 
@@ -225,7 +228,9 @@ class BaseModel(ABC):
         # set up mcmc
         _mcmc_kwargs = dict(num_warmup=500, num_samples=1000)
         _mcmc_kwargs.update(mcmc_kwargs)
-        mcmc = infer.MCMC(sampler(self.model), **_mcmc_kwargs)
+        _sampler_kwargs = dict(model=self.model)
+        _sampler_kwargs.update(sampler_kwargs or {})
+        mcmc = infer.MCMC(sampler(**_sampler_kwargs), **_mcmc_kwargs)
 
         # do it
         rng_key_ = (
