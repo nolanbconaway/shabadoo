@@ -13,14 +13,14 @@ def test_single_coef_is_about_right():
     This is a good round trip test that fitting works.
     """
     # going to make a coef be the mean of y
-    df = pd.DataFrame(dict(y=[10, 11, 11, 11, 12]))
+    df = pd.DataFrame(dict(y=[10, 11, 11, 11, 12] * 10))
     expected_coef = onp.log(df.y).mean()
 
     class Model(Poisson):
         dv = "y"
         features = dict(mu=dict(transformer=1, prior=dist.Normal(0, 5)),)
 
-    model = Model().fit(df, num_warmup=200, num_samples=2000, progress_bar=False)
+    model = Model().fit(df, num_warmup=200, num_samples=1000, progress_bar=False)
     avg_coef = model.samples_df.describe()["mu"]["mean"]
     pct_error = abs(avg_coef - expected_coef) / expected_coef
     assert pct_error < 0.01
@@ -28,7 +28,7 @@ def test_single_coef_is_about_right():
 
 def test_formula():
     """Test that the formula is as expected."""
-    samples = {"x1": onp.array([1.0] * 10), "x2": onp.array([1.0] * 10)}
+    config = {"samples": {"x1": onp.ones((2, 10)), "x2": onp.ones((2, 10))}}
 
     class Model(Poisson):
         dv = "y"
@@ -37,7 +37,7 @@ def test_formula():
             x2=dict(transformer=2, prior=dist.Normal(0, 1)),
         )
 
-    model = Model().from_samples(samples)
+    model = Model.from_dict(config)
     formula = model.formula
     expected = "y = exp(\n    x1 * 1.00000(+-0.00000)\n  + x2 * 1.00000(+-0.00000)\n)"
     assert formula == expected
@@ -51,8 +51,8 @@ def test_sample_posterior_predictive():
         dv = "y"
         features = dict(x=dict(transformer=lambda x: x.x, prior=dist.Normal(0, 1)))
 
-    samples = {"x": onp.array([1.0] * 100000)}
-    model = Model().from_samples(samples)
+    config = {"samples": {"x": onp.ones((5, 10000))}}
+    model = Model.from_dict(config)
     pred = model.sample_posterior_predictive(df)
     log_pred = onp.log(pred).round(2)
     assert df.x.astype("float32").equals(log_pred.astype("float32"))
@@ -66,8 +66,8 @@ def test_predict():
         dv = "y"
         features = dict(x=dict(transformer=lambda x: x.x, prior=dist.Normal(0, 1)))
 
-    samples = {"x": onp.array([1.0] * 10)}
-    model = Model().from_samples(samples)
+    config = {"samples": {"x": onp.ones((2, 10))}}
+    model = Model.from_dict(config)
     pred = model.predict(df)
     log_pred = onp.log(pred).round(2)
     assert df.x.astype("float32").equals(log_pred.astype("float32"))
@@ -82,15 +82,15 @@ def test_predict_ci():
         features = dict(x=dict(transformer=lambda x: x.x, prior=dist.Normal(0, 1)))
 
     # ci = yhat when no variation in samples
-    samples = {"x": onp.array([1.0] * 10)}
-    model = Model().from_samples(samples)
+    config = {"samples": {"x": onp.ones((2, 10))}}
+    model = Model.from_dict(config)
     pred = model.predict(df, ci=True).round(5).astype("float32")
     assert pred.y.equals(pred.ci_lower)
     assert pred.y.equals(pred.ci_upper)
 
     # lower < yhat < upper when some variation in samples
-    samples = {"x": onp.random.normal(size=(100,)) * 0.1}
-    model = Model().from_samples(samples)
+    config = {"samples": {"x": onp.random.normal(size=(2, 100)) * 0.1}}
+    model = Model.from_dict(config)
     pred = model.predict(df, ci=True)
     assert (pred.y > pred.ci_lower).all()
     assert (pred.y < pred.ci_upper).all()

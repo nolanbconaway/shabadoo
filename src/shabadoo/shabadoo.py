@@ -19,6 +19,21 @@ from numpyro import infer
 from . import exceptions
 
 
+class NumpyEncoder(json.JSONEncoder):
+    """Custom JSON encoder that handles numpy types."""
+
+    def default(self, obj):
+        """Encode numpy types or pass to default."""
+        if isinstance(obj, (np.integer, onp.integer)):
+            return int(obj)
+        elif isinstance(obj, (np.floating, onp.floating)):
+            return float(obj)
+        elif isinstance(obj, (np.ndarray, onp.ndarray)):
+            return onp.array(obj).tolist()
+        else:
+            return super(NumpyEncoder, self).default(obj)
+
+
 def require_fitted(f):
     """Decorate a function to require the model to be fitted for usage."""
 
@@ -51,6 +66,9 @@ class BaseModel(ABC):
     # wrap the linear combination if inputs {lc} in newlines and the link function
     # for formula printing only
     _formula_link_str = "(\n{lc}\n)"
+
+    # for when the model estimates nonfeature variables and we need to keep track.
+    _additional_variables = []
 
     @staticmethod
     @abstractmethod
@@ -239,18 +257,10 @@ class BaseModel(ABC):
         mcmc.run(rng_key_, df=df)
 
         # store results
-        self.samples = mcmc.get_samples()
+        self.samples = mcmc.get_samples(group_by_chain=True)
         self.fitted = True
 
         return self
-
-    @classmethod
-    def pre_from_samples(cls, samples: typing.Dict[str, np.ndarray]):
-        """Additional functionality to run before from_samples is called.
-        
-        Use it to check for required additional variables, etc.
-        """
-        pass
 
     def predict(
         self,
@@ -335,7 +345,7 @@ class BaseModel(ABC):
         )
 
         #  do it
-        predictions = infer.Predictive(self.model, self.samples)(rng_key_, df=df)[
+        predictions = infer.Predictive(self.model, self.samples_flat)(rng_key_, df=df)[
             self.dv
         ]
 
@@ -355,24 +365,59 @@ class BaseModel(ABC):
 
     @property
     @require_fitted
-    def samples_df(self) -> pd.DataFrame:
-        """Return a DataFrame of the model's MCMC samples."""
-        return pd.DataFrame(self.samples)[self.features.keys()]
+    def num_samples(self):
+        """Return the number of samples per variable.
+        
+        Assumes samples from all variables have same shape. Counts samples across all
+        chains.
+        """
+        k = next(self.features.__iter__())
+        return np.prod(self.samples[k].shape)
 
     @property
     @require_fitted
-    def samples_json(self) -> str:
-        """Return a JSON payload of the model's MCMC samples."""
-        return json.dumps({k: list(map(float, v)) for k, v in self.samples.items()})
+    def num_chains(self) -> int:
+        """Return the number of chains per variable in the model.
+        
+        Assumes samples from all variables have same shape.
+        """
+        k = next(self.features.__iter__())
+        return self.samples[k].shape[0]
+
+    @property
+    @require_fitted
+    def samples_flat(self):
+        """Provide a 1D view of the model's samples."""
+        return {k: v.flatten() for k, v in self.samples.items()}
+
+    @property
+    @require_fitted
+    def samples_df(self) -> pd.DataFrame:
+        """Return a DataFrame of the model's MCMC samples."""
+        num_chains, num_samples = self.num_chains, self.num_samples
+        samples_per_chain = num_samples / num_chains
+        index = pd.MultiIndex.from_product(
+            [np.arange(num_chains), np.arange(samples_per_chain)],
+            names=["chain", "sample"],
+        )
+        return pd.DataFrame(self.samples_flat, index=index)[self.features.keys()]
 
     @classmethod
-    def from_samples(cls, samples: typing.Dict[str, np.ndarray], **model_kw):
-        """Return a pre-fitted model given its samples.
+    def from_dict(cls, data: typing.Dict[str, typing.Any], **model_kw):
+        """Return a pre-fitted model given a dictionary of config.
+
+        The dictionary MUST contain the following:
+
+        - samples. A dictionary of variables to MCMC samples. Must contain all feature 
+        names and additional model variables. Each variable's data must be the same 
+        shape.
+
+        Any other dict keys will be added as model attributes.
         
         Parameters
         ----------
-        samples : dict mapping string feature name to -> numpy array samples.
-            MCMC samples.
+        data : dict.
+            Model configuration, including requirements listed above.
         kwargs
             passed to Model() init.
     
@@ -381,25 +426,43 @@ class BaseModel(ABC):
         Model
             A ready-to-use model.
         """
-        cls.pre_from_samples(samples)
-
-        # check that all keys are there
-        for feature_name in cls.features.keys():
-            if feature_name not in samples:
-                raise exceptions.IncompleteSamples(feature_name)
-
+        data = cls.preprocess_config_dict(data)
         model = cls(**model_kw)
         model.fitted = True
 
-        # make jax arrays when needed
-        model.samples = {k: np.device_put(v) for k, v in samples.items()}
+        # assign dict keys to model
+        for k, v in data.items():
+            setattr(cls, k, v)
+
         return model
 
-    @property
     @require_fitted
-    def num_samples(self) -> int:
-        """Return the number of samples available."""
-        return list(self.samples.values())[0].shape[0]
+    def to_json(self) -> str:
+        """Return a JSON payload of the model's config."""
+        return json.dumps({"samples": self.samples}, cls=NumpyEncoder)
+
+    @classmethod
+    def preprocess_config_dict(cls, config: dict) -> dict:
+        """Run checks and transformations on dicts for use in ``from_dict()``."""
+        # make samples into jax arrays
+        samples = {k: np.device_put(np.array(v)) for k, v in config["samples"].items()}
+
+        # check that all keys are there
+        for name in list(cls.features.keys()) + cls._additional_variables:
+            if name not in samples:
+                raise exceptions.IncompleteSamples(name)
+
+        # check that all samples have the same shape
+        shape = None
+        for k, v in samples.items():
+            _shape = v.shape
+            shape = _shape if shape is None else shape
+            if (shape != _shape) or (len(_shape) != 2):
+                raise exceptions.IncompleteSamples(k)
+
+        # samples check out, so reassign
+        config["samples"] = samples
+        return config
 
     @require_fitted
     def metrics(
@@ -502,6 +565,7 @@ class Normal(BaseModel):
     """Gaussian/normal family model for the generic regression model."""
 
     sigma_prior = 1.0
+    _additional_variables = ["_sigma"]
 
     @staticmethod
     def link(x):
@@ -512,12 +576,6 @@ class Normal(BaseModel):
         """Return a normal likelihood with fitted sigma."""
         _sigma = numpyro.sample("_sigma", dist.Exponential(self.sigma_prior))
         return dist.Normal(yhat, _sigma)
-
-    @classmethod
-    def pre_from_samples(cls, samples: typing.Dict[str, np.ndarray]):
-        """Check for sigma before init from samples."""
-        if "_sigma" not in samples:
-            raise exceptions.IncompleteSamples("_sigma")
 
 
 class Poisson(BaseModel):

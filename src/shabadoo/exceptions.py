@@ -47,8 +47,8 @@ class IncompleteFeature(ShabadooException):
 
 
 class IncompleteSamples(ShabadooException):
-    """Raised when from_samples initializing a model with an incomplete samples."""
+    """Raised a model has incomplete samples for some reason."""
 
     def __init__(self, name):
         """Set the message."""
-        self.message = f"No samples found for `{name}`."
+        self.message = f"No or not enough samples found for `{name}`."
