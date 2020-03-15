@@ -51,7 +51,7 @@ def test_sample_posterior_predictive():
         dv = "y"
         features = dict(x=dict(transformer=lambda x: x.x, prior=dist.Normal(0, 1)))
 
-    config = {"samples": {"x": onp.ones((5, 10000))}}
+    config = {"samples": {"x": onp.ones((10, 100000))}}
     model = Model.from_dict(config)
     pred = model.sample_posterior_predictive(df)
     log_pred = onp.log(pred).round(2)
