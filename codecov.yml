@@ -2,3 +2,8 @@ ignore:
   - "setup.py"
   - "test/.*"
   - "docs/.*"
+
+coverage:
+  status:
+    project: off
+    patch: off
