@@ -276,10 +276,10 @@ class BaseModel(ABC):
         df : pd.DataFrame
             Source dataframe.
         ci : float
-            Option to include a confidence interval around the predictions. Returns a 
+            Option to include a credible interval around the predictions. Returns a 
             dataframe if true, a series if false. Default False.
         ci_interval : float
-            Confidence interval width. Default 0.9.
+            Credible interval width. Default 0.9.
         aggfunc : string or callable
             Aggregation function called over predictions across posterior samples. 
             Applies only to the point prediction (not the CI).
@@ -325,7 +325,7 @@ class BaseModel(ABC):
         df : pd.DataFrame
             Source dataframe.
         hdpi : bool
-            Option to include lower/upper bound of the higher posterior density 
+            Option to include lower/upper bound of the highest posterior density 
             interval. Returns a dataframe if true, a series if false. Default False.
         hdpi_interval : float
             HDPI width. Default 0.9.
@@ -397,7 +397,10 @@ class BaseModel(ABC):
         num_chains, num_samples = self.num_chains, self.num_samples
         samples_per_chain = num_samples / num_chains
         index = pd.MultiIndex.from_product(
-            [np.arange(num_chains), np.arange(samples_per_chain)],
+            [
+                np.arange(num_chains, dtype="uint32"),
+                np.arange(samples_per_chain, dtype="uint32"),
+            ],
             names=["chain", "sample"],
         )
         return pd.DataFrame(self.samples_flat, index=index)[self.features.keys()]
