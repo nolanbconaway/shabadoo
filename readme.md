@@ -85,7 +85,7 @@ model.predict(df)
 
 #### Credible Intervals
 
-Use `model.predict(df, ci=True)` to obtain a credible interval around the model's prediction. This interval accounts for error estimating the model's coefficients but does not account for the error around the model's point estimate.
+Use `model.predict(df, ci=True)` to obtain a credible interval around the model's prediction. This interval accounts for error estimating the model's coefficients but does not account for the error around the model's point estimate (PRs welcome ya'll!).
 
 ```python
 model.predict(df, ci=True)
