@@ -39,12 +39,14 @@ Shabadoo was designed to make it as easy as possible to test ideas about feature
 You need to define a new class which inherits from one of the Shabadoo models. Currently, Normal, Poisson, and Bernoulli are implemented.
 
 ```python
+import numpy as np
 import pandas as pd
 from numpyro import distributions as dist
 from shabadoo import Normal
 
-# fake data
-df = pd.DataFrame(dict(x=[1, 2, 2, 3, 4, 5], y=[1, 2, 3, 4, 3, 5]))
+
+# random number generator seed, to reproduce exactly.
+RNG_KEY = np.array([0, 0])
 
 class Model(Normal):
     dv = "y"
@@ -53,6 +55,8 @@ class Model(Normal):
         x=dict(transformer=lambda df: df.x, prior=dist.Normal(0, 1)),
     )
 
+
+df = pd.DataFrame(dict(x=[1, 2, 2, 3, 4, 5], y=[1, 2, 3, 4, 3, 5]))
 ```
 
 The `dv` attribute specifies the variable you are predicting. `features` is a dictionary of dictionaries, with one item per feature. Above, two features are defined (`const` and `x`). Each feature needs a `transformer` and a `prior`. 
@@ -64,22 +68,38 @@ The transformer specifies how to obtain the feature given a source dataframe. Th
 Shabadoo models implement the well-known `.fit` / `.predict` api pattern.
 
 ```python
-model = Model().fit(df)
-# sample: 100%|██████████| 1500/1500 [00:05<00:00, 282.76it/s, 7 steps of size 4.17e-01. acc. prob=0.88]
+model = Model().fit(df, rng_key=RNG_KEY)
+# sample: 100%|██████████| 1500/1500 [00:04<00:00, 308.01it/s, 7 steps of size 4.17e-01. acc. prob=0.89]
 
 model.predict(df)
 
 """
-0    1.309280
-1    2.176555
-2    2.176555
-3    3.043831
-4    3.911106
-5    4.778381
+0    1.351874
+1    2.219510
+2    2.219510
+3    3.087146
+4    3.954782
+5    4.822418
 """
 ```
 
-Use `model.predict(df, ci=True)` to obtain a confidence interval around the model's prediction.
+#### Credible Intervals
+
+Use `model.predict(df, ci=True)` to obtain a credible interval around the model's prediction. This interval accounts for error estimating the model's coefficients but does not account for the error around the model's point estimate (PRs welcome ya'll!).
+
+```python
+model.predict(df, ci=True)
+
+"""
+          y  ci_lower  ci_upper
+0  1.351874  0.730992  1.946659
+1  2.219510  1.753340  2.654678
+2  2.219510  1.753340  2.654678
+3  3.087146  2.663617  3.526434
+4  3.954782  3.401837  4.548420
+5  4.822418  4.047847  5.578753
+"""
+```
 
 ### Inspecting the model
 
@@ -94,13 +114,37 @@ print(model.formula)
 
 """
 y = (
-    const * 0.44200(+-0.63186)
-  + x * 0.86728(+-0.22604)
+    const * 0.48424(+-0.64618)
+  + x * 0.86764(+-0.21281)
 )
 """
 ```
 
-#### Measure prediction accuracy.
+#### Look at the posterior samples
+
+Samples from fitted models can be accessed using `model.samples` (for raw device arrays) and `model.samples_df` (for a tidy DataFrame).
+
+
+```python
+model.samples['x']
+"""
+DeviceArray([[0.9443443 , 1.0215557 , 1.0401363 , 1.1768144 , 1.1752374 ,
+...
+"""
+
+model.samples_df.head()
+"""
+                 const         x
+chain sample                    
+0     0       0.074572  0.944344
+      1       0.214246  1.021556
+      2      -0.172168  1.040136
+      3       0.440978  1.176814
+      4       0.454463  1.175237
+"""
+```
+
+#### Measure prediction accuracy
 
 The `Model.metrics()` method is packed with functionality. You should not have to write a lot of code to evaluate your model's prediction accuracy!
 
@@ -111,8 +155,8 @@ model.metrics(df)
 
 {'r': 0.8646920305474705,
  'rsq': 0.7476923076923075,
- 'mae': 0.5663623639121652,
- 'mape': 0.20985123644135573}
+ 'mae': 0.5661819464378061,
+ 'mape': 0.21729708806356265}
 ```
 
 For per-point errors, use `aggerrs=False`. A pandas dataframe will be returned that you can join on your source data using its index.
@@ -122,12 +166,12 @@ model.metrics(df, aggerrs=False)
 
 """
    residual         pe        ape
-0 -0.309280 -30.928012  30.928012
-1 -0.176555  -8.827769   8.827769
-2  0.823445  27.448154  27.448154
-3  0.956169  23.904233  23.904233
-4 -0.911106 -30.370198  30.370198
-5  0.221619   4.432376   4.432376
+0 -0.351874 -35.187366  35.187366
+1 -0.219510 -10.975488  10.975488
+2  0.780490  26.016341  26.016341
+3  0.912854  22.821353  22.821353
+4 -0.954782 -31.826066  31.826066
+5  0.177582   3.551638   3.551638
 """
 ```
 
@@ -137,7 +181,10 @@ You can use `grouped_metrics` to understand within-group errors. Under the hood,
 df["group"] = [1, 1, 1, 2, 2, 2]
 model.grouped_metrics(df, 'group')
 
-{'r': 1.0, 'rsq': 1.0, 'mae': 0.30214565559127315, 'mape': 0.03924585080786096}
+{'r': 1.0,
+ 'rsq': 1.0,
+ 'mae': 0.17238043177407247,
+ 'mape': 0.023077819594065668}
 ```
 
 ```python
@@ -146,53 +193,25 @@ model.grouped_metrics(df, "group", aggerrs=False)
 """
        residual        pe       ape
 group                              
-1     -0.337609 -5.626818  5.626818
-2     -0.266682 -2.222352  2.222352
+1     -0.209107 -3.485113  3.485113
+2     -0.135654 -1.130450  1.130450
 """
 ```
 
 ### Saving and recovering a saved model
 
-Shabadoo models have a `from_samples` method which allows a model to be save and recovered exactly. 
-
-Samples from fitted models can be accessed using `model.samples` and `model.samples_df`.
-
-
-```python
-model.samples['x']
-"""
-DeviceArray([0.65721655, 0.7644873 , 0.8724553 , 0.6285299 , 0.681262  ,
-...
-"""
-
-model.samples_df.head()
-"""
-      const         x
-0  0.689248  0.657217
-1  0.524834  0.764487
-2  1.093962  0.872455
-3  1.253354  0.628530
-4  1.021025  0.681262
-"""
-```
-
-Use the samples to recover your model:
-
-```python
-model_recovered = Model.from_samples(model.samples)
-
-model_recovered.predict(df).equals(model.predict(df))
-True
-```
-
-Model samples can be saved as JSON using `model.samples_json`:
+Shabadoo models have `to_json` and `from_dict` methods which allow models to be saved and recovered exactly. 
 
 ```python
 import json
 
-with open('model.json', 'w') as f:
-    f.write(model.samples_json)
+# export to a JSON string
+model_json = model.to_json()
 
-with open('model.json', 'r') as f:
-    model_recovered = Model.from_samples(json.load(f))
+# recover the model
+model_recovered = Model.from_dict(json.loads(model_json))
+
+# check the predictions are the same
+model_recovered.predict(df).equals(model.predict(df))
+True
 ```
