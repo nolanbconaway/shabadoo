@@ -69,6 +69,21 @@
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">exceptions</span>
 
 
+<span class="k">class</span> <span class="nc">NumpyEncoder</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">JSONEncoder</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Custom JSON encoder that handles numpy types.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">default</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Encode numpy types or pass to default.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">integer</span><span class="p">,</span> <span class="n">onp</span><span class="o">.</span><span class="n">integer</span><span class="p">)):</span>
+            <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">floating</span><span class="p">,</span> <span class="n">onp</span><span class="o">.</span><span class="n">floating</span><span class="p">)):</span>
+            <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">onp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)):</span>
+            <span class="k">return</span> <span class="n">onp</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">NumpyEncoder</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+
+
 <span class="k">def</span> <span class="nf">require_fitted</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Decorate a function to require the model to be fitted for usage.&quot;&quot;&quot;</span>
 
@@ -101,6 +116,9 @@
     <span class="c1"># wrap the linear combination if inputs {lc} in newlines and the link function</span>
     <span class="c1"># for formula printing only</span>
     <span class="n">_formula_link_str</span> <span class="o">=</span> <span class="s2">&quot;(</span><span class="se">\n</span><span class="si">{lc}</span><span class="se">\n</span><span class="s2">)&quot;</span>
+
+    <span class="c1"># for when the model estimates nonfeature variables and we need to keep track.</span>
+    <span class="n">_additional_variables</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="nd">@staticmethod</span>
     <span class="nd">@abstractmethod</span>
@@ -143,10 +161,10 @@
         <span class="n">model_type</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">BaseModel</span><span class="p">,</span> <span class="nb">zip</span><span class="p">(</span><span class="n">mro</span><span class="p">,</span> <span class="n">mro</span><span class="p">[</span><span class="mi">1</span><span class="p">:])),</span> <span class="kc">None</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">model_type</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;&lt;Shabadoo Model: </span><span class="si">{my_name}</span><span class="s2">&gt;&quot;</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;&lt;Shabadoo Model: </span><span class="si">{</span><span class="n">my_name</span><span class="si">}</span><span class="s2">&gt;&quot;</span>
 
         <span class="n">model_type</span> <span class="o">=</span> <span class="n">model_type</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="vm">__name__</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;&lt;Shabadoo </span><span class="si">{model_type}</span><span class="s2"> Model: </span><span class="si">{my_name}</span><span class="s2">&gt;&quot;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;&lt;Shabadoo </span><span class="si">{</span><span class="n">model_type</span><span class="si">}</span><span class="s2"> Model: </span><span class="si">{</span><span class="n">my_name</span><span class="si">}</span><span class="s2">&gt;&quot;</span>
 
     <span class="k">def</span> <span class="nf">split_rand_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">random</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Split the random key, assign a new key and return the subkeys.</span>
@@ -289,18 +307,10 @@
         <span class="n">mcmc</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">rng_key_</span><span class="p">,</span> <span class="n">df</span><span class="o">=</span><span class="n">df</span><span class="p">)</span>
 
         <span class="c1"># store results</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">samples</span> <span class="o">=</span> <span class="n">mcmc</span><span class="o">.</span><span class="n">get_samples</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">samples</span> <span class="o">=</span> <span class="n">mcmc</span><span class="o">.</span><span class="n">get_samples</span><span class="p">(</span><span class="n">group_by_chain</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">fitted</span> <span class="o">=</span> <span class="kc">True</span>
 
         <span class="k">return</span> <span class="bp">self</span>
-
-    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">pre_from_samples</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">samples</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]):</span>
-        <span class="sd">&quot;&quot;&quot;Additional functionality to run before from_samples is called.</span>
-<span class="sd">        </span>
-<span class="sd">        Use it to check for required additional variables, etc.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">pass</span>
 
     <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -316,10 +326,10 @@
 <span class="sd">        df : pd.DataFrame</span>
 <span class="sd">            Source dataframe.</span>
 <span class="sd">        ci : float</span>
-<span class="sd">            Option to include a confidence interval around the predictions. Returns a </span>
+<span class="sd">            Option to include a credible interval around the predictions. Returns a </span>
 <span class="sd">            dataframe if true, a series if false. Default False.</span>
 <span class="sd">        ci_interval : float</span>
-<span class="sd">            Confidence interval width. Default 0.9.</span>
+<span class="sd">            Credible interval width. Default 0.9.</span>
 <span class="sd">        aggfunc : string or callable</span>
 <span class="sd">            Aggregation function called over predictions across posterior samples. </span>
 <span class="sd">            Applies only to the point prediction (not the CI).</span>
@@ -365,7 +375,7 @@
 <span class="sd">        df : pd.DataFrame</span>
 <span class="sd">            Source dataframe.</span>
 <span class="sd">        hdpi : bool</span>
-<span class="sd">            Option to include lower/upper bound of the higher posterior density </span>
+<span class="sd">            Option to include lower/upper bound of the highest posterior density </span>
 <span class="sd">            interval. Returns a dataframe if true, a series if false. Default False.</span>
 <span class="sd">        hdpi_interval : float</span>
 <span class="sd">            HDPI width. Default 0.9.</span>
@@ -385,7 +395,7 @@
         <span class="p">)</span>
 
         <span class="c1">#  do it</span>
-        <span class="n">predictions</span> <span class="o">=</span> <span class="n">infer</span><span class="o">.</span><span class="n">Predictive</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">samples</span><span class="p">)(</span><span class="n">rng_key_</span><span class="p">,</span> <span class="n">df</span><span class="o">=</span><span class="n">df</span><span class="p">)[</span>
+        <span class="n">predictions</span> <span class="o">=</span> <span class="n">infer</span><span class="o">.</span><span class="n">Predictive</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">samples_flat</span><span class="p">)(</span><span class="n">rng_key_</span><span class="p">,</span> <span class="n">df</span><span class="o">=</span><span class="n">df</span><span class="p">)[</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">dv</span>
         <span class="p">]</span>
 
@@ -405,24 +415,62 @@
 
     <span class="nd">@property</span>
     <span class="nd">@require_fitted</span>
-    <span class="k">def</span> <span class="nf">samples_df</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Return a DataFrame of the model&#39;s MCMC samples.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">samples</span><span class="p">)[</span><span class="bp">self</span><span class="o">.</span><span class="n">features</span><span class="o">.</span><span class="n">keys</span><span class="p">()]</span>
+    <span class="k">def</span> <span class="nf">num_samples</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the number of samples per variable.</span>
+<span class="sd">        </span>
+<span class="sd">        Assumes samples from all variables have same shape. Counts samples across all</span>
+<span class="sd">        chains.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">features</span><span class="o">.</span><span class="fm">__iter__</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">samples</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="nd">@require_fitted</span>
-    <span class="k">def</span> <span class="nf">samples_json</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Return a JSON payload of the model&#39;s MCMC samples.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">({</span><span class="n">k</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="n">v</span><span class="p">))</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">samples</span><span class="o">.</span><span class="n">items</span><span class="p">()})</span>
+    <span class="k">def</span> <span class="nf">num_chains</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Return the number of chains per variable in the model.</span>
+<span class="sd">        </span>
+<span class="sd">        Assumes samples from all variables have same shape.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">features</span><span class="o">.</span><span class="fm">__iter__</span><span class="p">())</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">samples</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="nd">@require_fitted</span>
+    <span class="k">def</span> <span class="nf">samples_flat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Provide a 1D view of the model&#39;s samples.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">samples</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+
+    <span class="nd">@property</span>
+    <span class="nd">@require_fitted</span>
+    <span class="k">def</span> <span class="nf">samples_df</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Return a DataFrame of the model&#39;s MCMC samples.&quot;&quot;&quot;</span>
+        <span class="n">num_chains</span><span class="p">,</span> <span class="n">num_samples</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_chains</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_samples</span>
+        <span class="n">samples_per_chain</span> <span class="o">=</span> <span class="n">num_samples</span> <span class="o">/</span> <span class="n">num_chains</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="o">.</span><span class="n">from_product</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">num_chains</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;uint32&quot;</span><span class="p">),</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">samples_per_chain</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;uint32&quot;</span><span class="p">),</span>
+            <span class="p">],</span>
+            <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;chain&quot;</span><span class="p">,</span> <span class="s2">&quot;sample&quot;</span><span class="p">],</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">samples_flat</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">)[</span><span class="bp">self</span><span class="o">.</span><span class="n">features</span><span class="o">.</span><span class="n">keys</span><span class="p">()]</span>
 
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_samples</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">samples</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="o">**</span><span class="n">model_kw</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return a pre-fitted model given its samples.</span>
+    <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">Any</span><span class="p">],</span> <span class="o">**</span><span class="n">model_kw</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return a pre-fitted model given a dictionary of config.</span>
+
+<span class="sd">        The dictionary MUST contain the following:</span>
+
+<span class="sd">        - samples. A dictionary of variables to MCMC samples. Must contain all feature </span>
+<span class="sd">        names and additional model variables. Each variable&#39;s data must be the same </span>
+<span class="sd">        shape.</span>
+
+<span class="sd">        Any other dict keys will be added as model attributes.</span>
 <span class="sd">        </span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        samples : dict mapping string feature name to -&gt; numpy array samples.</span>
-<span class="sd">            MCMC samples.</span>
+<span class="sd">        data : dict.</span>
+<span class="sd">            Model configuration, including requirements listed above.</span>
 <span class="sd">        kwargs</span>
 <span class="sd">            passed to Model() init.</span>
 <span class="sd">    </span>
@@ -431,25 +479,43 @@
 <span class="sd">        Model</span>
 <span class="sd">            A ready-to-use model.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">cls</span><span class="o">.</span><span class="n">pre_from_samples</span><span class="p">(</span><span class="n">samples</span><span class="p">)</span>
-
-        <span class="c1"># check that all keys are there</span>
-        <span class="k">for</span> <span class="n">feature_name</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">features</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-            <span class="k">if</span> <span class="n">feature_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">samples</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">IncompleteSamples</span><span class="p">(</span><span class="n">feature_name</span><span class="p">)</span>
-
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">preprocess_config_dict</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
         <span class="n">model</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="o">**</span><span class="n">model_kw</span><span class="p">)</span>
         <span class="n">model</span><span class="o">.</span><span class="n">fitted</span> <span class="o">=</span> <span class="kc">True</span>
 
-        <span class="c1"># make jax arrays when needed</span>
-        <span class="n">model</span><span class="o">.</span><span class="n">samples</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">device_put</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">samples</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="c1"># assign dict keys to model</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+
         <span class="k">return</span> <span class="n">model</span>
 
-    <span class="nd">@property</span>
     <span class="nd">@require_fitted</span>
-    <span class="k">def</span> <span class="nf">num_samples</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Return the number of samples available.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">samples</span><span class="o">.</span><span class="n">values</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">def</span> <span class="nf">to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Return a JSON payload of the model&#39;s config.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">({</span><span class="s2">&quot;samples&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">samples</span><span class="p">},</span> <span class="bp">cls</span><span class="o">=</span><span class="n">NumpyEncoder</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">preprocess_config_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Run checks and transformations on dicts for use in ``from_dict()``.&quot;&quot;&quot;</span>
+        <span class="c1"># make samples into jax arrays</span>
+        <span class="n">samples</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">device_put</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">v</span><span class="p">))</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;samples&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+
+        <span class="c1"># check that all keys are there</span>
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">features</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">+</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_additional_variables</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">samples</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">IncompleteSamples</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="c1"># check that all samples have the same shape</span>
+        <span class="n">shape</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">samples</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">_shape</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">shape</span>
+            <span class="n">shape</span> <span class="o">=</span> <span class="n">_shape</span> <span class="k">if</span> <span class="n">shape</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">shape</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">_shape</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">_shape</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">IncompleteSamples</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+
+        <span class="c1"># samples check out, so reassign</span>
+        <span class="n">config</span><span class="p">[</span><span class="s2">&quot;samples&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">samples</span>
+        <span class="k">return</span> <span class="n">config</span>
 
     <span class="nd">@require_fitted</span>
     <span class="k">def</span> <span class="nf">metrics</span><span class="p">(</span>
@@ -531,7 +597,7 @@
     <span class="k">def</span> <span class="nf">formula</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return a formula string describing the model.&quot;&quot;&quot;</span>
         <span class="n">descriptives</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">samples_df</span><span class="o">.</span><span class="n">describe</span><span class="p">()</span>
-        <span class="n">formula_template</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{self.dv}</span><span class="s2"> = &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_formula_link_str</span>
+        <span class="n">formula_template</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">dv</span><span class="si">}</span><span class="s2"> = &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_formula_link_str</span>
 
         <span class="c1"># get a string rep from each descriptive column. this will be for each feature:</span>
         <span class="c1">#       x * mu(+-sd)</span>
@@ -542,7 +608,7 @@
                 <span class="n">prefix</span> <span class="o">=</span> <span class="s2">&quot;    &quot;</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">prefix</span> <span class="o">=</span> <span class="s2">&quot;  + &quot;</span>
-            <span class="k">return</span> <span class="n">prefix</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span><span class="si">{x.name}</span><span class="s2"> * </span><span class="si">{mu:0.5f}</span><span class="s2">(+-</span><span class="si">{sd:0.5f}</span><span class="s2">)&quot;&quot;&quot;</span>
+            <span class="k">return</span> <span class="n">prefix</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span><span class="si">{</span><span class="n">x</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> * </span><span class="si">{</span><span class="n">mu</span><span class="si">:</span><span class="s2">0.5f</span><span class="si">}</span><span class="s2">(+-</span><span class="si">{</span><span class="n">sd</span><span class="si">:</span><span class="s2">0.5f</span><span class="si">}</span><span class="s2">)&quot;&quot;&quot;</span>
 
         <span class="n">lc</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">descriptives</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">get_str</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
         <span class="k">return</span> <span class="n">formula_template</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">lc</span><span class="o">=</span><span class="n">lc</span><span class="p">)</span>
@@ -552,6 +618,7 @@
     <span class="sd">&quot;&quot;&quot;Gaussian/normal family model for the generic regression model.&quot;&quot;&quot;</span>
 
     <span class="n">sigma_prior</span> <span class="o">=</span> <span class="mf">1.0</span>
+    <span class="n">_additional_variables</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;_sigma&quot;</span><span class="p">]</span>
 
 <div class="viewcode-block" id="Normal.link"><a class="viewcode-back" href="../../api.html#shabadoo.Normal.link">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">link</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
@@ -561,13 +628,7 @@
 <div class="viewcode-block" id="Normal.likelihood_func"><a class="viewcode-back" href="../../api.html#shabadoo.Normal.likelihood_func">[docs]</a>    <span class="k">def</span> <span class="nf">likelihood_func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">yhat</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return a normal likelihood with fitted sigma.&quot;&quot;&quot;</span>
         <span class="n">_sigma</span> <span class="o">=</span> <span class="n">numpyro</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="s2">&quot;_sigma&quot;</span><span class="p">,</span> <span class="n">dist</span><span class="o">.</span><span class="n">Exponential</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sigma_prior</span><span class="p">))</span>
-        <span class="k">return</span> <span class="n">dist</span><span class="o">.</span><span class="n">Normal</span><span class="p">(</span><span class="n">yhat</span><span class="p">,</span> <span class="n">_sigma</span><span class="p">)</span></div>
-
-<div class="viewcode-block" id="Normal.pre_from_samples"><a class="viewcode-back" href="../../api.html#shabadoo.Normal.pre_from_samples">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">pre_from_samples</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">samples</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]):</span>
-        <span class="sd">&quot;&quot;&quot;Check for sigma before init from samples.&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="s2">&quot;_sigma&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">samples</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">IncompleteSamples</span><span class="p">(</span><span class="s2">&quot;_sigma&quot;</span><span class="p">)</span></div></div>
+        <span class="k">return</span> <span class="n">dist</span><span class="o">.</span><span class="n">Normal</span><span class="p">(</span><span class="n">yhat</span><span class="p">,</span> <span class="n">_sigma</span><span class="p">)</span></div></div>
 
 
 <div class="viewcode-block" id="Poisson"><a class="viewcode-back" href="../../api.html#shabadoo.Poisson">[docs]</a><span class="k">class</span> <span class="nc">Poisson</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
