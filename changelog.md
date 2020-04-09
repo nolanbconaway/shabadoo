@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.0] - 2020-04-06
+
+- Fixes #20 - Preserve chain grouping on .fit. Most other changes inservice of this.
+- Alter json export and import to support 2d samples.
+- Change all tests to use 2d samples.
+- Nest samples within a config dict to allow new fields for import/export.
+- Use custom JSONEncoder.
+- Nix pre_from_samples in favor of class attributes.
+- Rename from_samples to from_dict.
+- Make distinct config preprocessor.
+
 ## [0.0.4] - 2020-03-07
 
 - Fixes #17: Support an aggfunc option for .predict
