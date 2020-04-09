@@ -16,7 +16,7 @@ jobs:
       - name: Install Dependencies
         run: |
           pip install --upgrade pip
-          pip install sphinx m2r numpydoc --upgrade
+          pip install sphinx~=2.4.4 m2r numpydoc --upgrade
 
           # install deps manually bc pypi numpyro is too strict.
           pip install --upgrade jax jaxlib numpyro tqdm pandas
