@@ -18,10 +18,9 @@ jobs:
           pip install --upgrade pip
           pip install sphinx~=2.4.4 m2r numpydoc --upgrade
 
-          # install deps manually bc pypi numpyro is too strict.
-          pip install --upgrade jax jaxlib numpyro tqdm pandas
-          pip install git+https://github.com/pyro-ppl/numpyro --no-deps
-          python setup.py develop --no-deps
+          # install numpyro from git bc the pypi release is too strict about jax
+          pip install git+https://github.com/pyro-ppl/numpyro
+          python setup.py develop
 
       - name: Build docs
         run: sphinx-build docs build

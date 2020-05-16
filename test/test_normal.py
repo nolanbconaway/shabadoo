@@ -34,7 +34,12 @@ def test_single_coef_is_about_right():
         features = dict(mu=dict(transformer=1, prior=dist.Normal(0, 5)))
 
     model = Model().fit(
-        df, num_chains=2, num_warmup=100, num_samples=200, progress_bar=False
+        df,
+        num_chains=2,
+        num_warmup=100,
+        num_samples=200,
+        progress_bar=False,
+        rng_key=onp.array([0, 0]),
     )
     assert model.num_samples == 2 * 200
     assert model.num_chains == 2
@@ -219,7 +224,7 @@ def test_sample_posterior_predictive():
 
     config = {"samples": {"x": [[1.0]], "_sigma": [[0.0]]}}
     model = Model.from_dict(config)
-    pred = model.sample_posterior_predictive(df)
+    pred = model.sample_posterior_predictive(df, rng_key=onp.array([0, 0]))
     assert df.x.astype("float32").equals(pred.astype("float32"))
 
     # add hdpi
@@ -227,7 +232,7 @@ def test_sample_posterior_predictive():
         "samples": {"x": onp.random.normal(size=(2, 10)), "_sigma": onp.ones((2, 10))}
     }
     model = Model.from_dict(config)
-    pred = model.sample_posterior_predictive(df, hdpi=True)
+    pred = model.sample_posterior_predictive(df, hdpi=True, rng_key=onp.array([0, 0]))
     assert (pred.y < pred.hdpi_upper).all()
     assert (pred.y > pred.hdpi_lower).all()
 
@@ -393,7 +398,7 @@ def test_to_json():
 
 
 def test_predict_ci():
-    """Test that predict makes sense when init from samples."""
+    """Test that predict ci makes sense when init from samples."""
     df = pd.DataFrame(dict(x=[1.0, 2.0, 3.0, 4.0]))
 
     class Model(Normal):
