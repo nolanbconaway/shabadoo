@@ -59,7 +59,18 @@ and this project adheres to <a class="reference external" href="https://semver.o
 <h2>[Unreleased]<a class="headerlink" href="#unreleased" title="Permalink to this headline">¶</a></h2>
 </div>
 <div class="section" id="id1">
-<h2>[0.1.0] - 2020-04-06<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<h2>[0.1.1] - 2020-05-16<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>A bugfix release, no changes to the API. Users with older versions of jax/jaxlib may
+need to upgrade to <code class="docutils literal notranslate"><span class="pre">jax~=0.1.67</span></code> / <code class="docutils literal notranslate"><span class="pre">jaxlib~=0.1.47</span></code> as some parts of the jax API have
+changed. Shabadoo has changed how it imports functions from jax and will not import
+correctly with older jax versions.</p>
+<ul class="simple">
+<li><p>Fixes #24: set <code class="docutils literal notranslate"><span class="pre">rng_key</span></code> for tests that involve randomness.</p></li>
+<li><p>Fixes #12: reduce hackyness of the numpyro/jax installation step in CI.</p></li>
+</ul>
+</div>
+<div class="section" id="id2">
+<h2>[0.1.0] - 2020-04-06<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>Fixes #20 - Preserve chain grouping on .fit. Most other changes inservice of this.</p></li>
 <li><p>Alter json export and import to support 2d samples.</p></li>
@@ -71,16 +82,16 @@ and this project adheres to <a class="reference external" href="https://semver.o
 <li><p>Make distinct config preprocessor.</p></li>
 </ul>
 </div>
-<div class="section" id="id2">
-<h2>[0.0.4] - 2020-03-07<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id3">
+<h2>[0.0.4] - 2020-03-07<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>Fixes #17: Support an aggfunc option for .predict</p></li>
 <li><p>Fixes #15: Custom errors for better exception catching</p></li>
 <li><p>Add <code class="docutils literal notranslate"><span class="pre">sampler_kwargs</span></code> to .fit() so that users can tune the sampler.</p></li>
 </ul>
 </div>
-<div class="section" id="id3">
-<h2>[0.0.3] - 2020-02-23<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id4">
+<h2>[0.0.3] - 2020-02-23<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>Fixes #14 - A bug in which the formula printer did not include plus signs.</p></li>
 <li><p>Fixes #11 - Allow users to set the rng seed when randomness is used (<code class="docutils literal notranslate"><span class="pre">.fit</span></code>, <code class="docutils literal notranslate"><span class="pre">.sample_posterior_predictive</span></code>). Thanks &#64;favianrahman for the suggestion!</p></li>
@@ -88,8 +99,8 @@ and this project adheres to <a class="reference external" href="https://semver.o
 <li><p>Add this changelog!</p></li>
 </ul>
 </div>
-<div class="section" id="id4">
-<h2>[0.0.1, 0.0.2, 0.0.2.1] - 2020-02-15<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id5">
+<h2>[0.0.1, 0.0.2, 0.0.2.1] - 2020-02-15<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>Init releases. I made many because there were some problems with the pypi auto release.</p></li>
 </ul>
@@ -106,10 +117,11 @@ and this project adheres to <a class="reference external" href="https://semver.o
   <ul>
 <li><a class="reference internal" href="#">Change Log</a><ul>
 <li><a class="reference internal" href="#unreleased">[Unreleased]</a></li>
-<li><a class="reference internal" href="#id1">[0.1.0] - 2020-04-06</a></li>
-<li><a class="reference internal" href="#id2">[0.0.4] - 2020-03-07</a></li>
-<li><a class="reference internal" href="#id3">[0.0.3] - 2020-02-23</a></li>
-<li><a class="reference internal" href="#id4">[0.0.1, 0.0.2, 0.0.2.1] - 2020-02-15</a></li>
+<li><a class="reference internal" href="#id1">[0.1.1] - 2020-05-16</a></li>
+<li><a class="reference internal" href="#id2">[0.1.0] - 2020-04-06</a></li>
+<li><a class="reference internal" href="#id3">[0.0.4] - 2020-03-07</a></li>
+<li><a class="reference internal" href="#id4">[0.0.3] - 2020-02-23</a></li>
+<li><a class="reference internal" href="#id5">[0.0.1, 0.0.2, 0.0.2.1] - 2020-02-15</a></li>
 </ul>
 </li>
 </ul>
