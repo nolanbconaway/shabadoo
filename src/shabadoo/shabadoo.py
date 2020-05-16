@@ -9,6 +9,7 @@ from random import randint
 import numpy as onp
 import numpyro
 import pandas as pd
+from jax import device_put
 from jax import numpy as np
 from jax import random
 from jax.scipy.special import expit
@@ -448,7 +449,7 @@ class BaseModel(ABC):
     def preprocess_config_dict(cls, config: dict) -> dict:
         """Run checks and transformations on dicts for use in ``from_dict()``."""
         # make samples into jax arrays
-        samples = {k: np.device_put(np.array(v)) for k, v in config["samples"].items()}
+        samples = {k: device_put(np.array(v)) for k, v in config["samples"].items()}
 
         # check that all keys are there
         for name in list(cls.features.keys()) + cls._additional_variables:
