@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1] - 2020-05-16
+
+A bugfix release, no changes to the API. Users with older versions of jax/jaxlib may 
+need to upgrade to `jax~=0.1.67` / `jaxlib~=0.1.47` as some parts of the jax API have 
+changed. Shabadoo has changed how it imports functions from jax and will not import 
+correctly with older jax versions.
+
+- Fixes #24: set `rng_key` for tests that involve randomness.
+- Fixes #12: reduce hackyness of the numpyro/jax installation step in CI.
+
 ## [0.1.0] - 2020-04-06
 
 - Fixes #20 - Preserve chain grouping on .fit. Most other changes inservice of this.
