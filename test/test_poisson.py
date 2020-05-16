@@ -20,7 +20,13 @@ def test_single_coef_is_about_right():
         dv = "y"
         features = dict(mu=dict(transformer=1, prior=dist.Normal(0, 5)),)
 
-    model = Model().fit(df, num_warmup=200, num_samples=1000, progress_bar=False)
+    model = Model().fit(
+        df,
+        num_warmup=200,
+        num_samples=1000,
+        progress_bar=False,
+        rng_key=onp.array([0, 0]),
+    )
     avg_coef = model.samples_df.describe()["mu"]["mean"]
     pct_error = abs(avg_coef - expected_coef) / expected_coef
     assert pct_error < 0.01
@@ -53,7 +59,7 @@ def test_sample_posterior_predictive():
 
     config = {"samples": {"x": onp.ones((10, 100000))}}
     model = Model.from_dict(config)
-    pred = model.sample_posterior_predictive(df)
+    pred = model.sample_posterior_predictive(df, rng_key=onp.array([0, 0]))
     log_pred = onp.log(pred).round(2)
     assert df.x.astype("float32").equals(log_pred.astype("float32"))
 
@@ -74,7 +80,7 @@ def test_predict():
 
 
 def test_predict_ci():
-    """Test that predict makes sense when init from samples."""
+    """Test that predict ci makes sense when init from samples."""
     df = pd.DataFrame(dict(x=[1.0, 2.0, 3.0, 4.0]))
 
     class Model(Poisson):
