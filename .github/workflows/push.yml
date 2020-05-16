@@ -24,10 +24,8 @@ jobs:
           # test deps
           pip install --upgrade black pytest pytest-cov codecov
 
-          # install deps manually bc pypi numpyro is too strict.
-          pip install --upgrade jax jaxlib numpyro tqdm pandas
-          pip install git+https://github.com/pyro-ppl/numpyro --no-deps
-          python setup.py develop --no-deps
+          pip install git+https://github.com/pyro-ppl/numpyro
+          python setup.py develop
 
       - name: Lint with Black
         run: black . --check --verbose

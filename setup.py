@@ -6,7 +6,7 @@ from setuptools import find_packages, setup
 
 THIS_DIRECTORY = Path(__file__).resolve().parent
 
-INSTALL_REQUIRES = ["numpyro~=0.2.4", "pandas~=1.0.1"]
+INSTALL_REQUIRES = ["numpyro~=0.2.4", "pandas~=1.0.1", "jax~=0.1.67", "jaxlib~=0.1.47"]
 
 # use readme as long description
 LONG_DESCRIPTION = (THIS_DIRECTORY / "readme.md").read_text()
