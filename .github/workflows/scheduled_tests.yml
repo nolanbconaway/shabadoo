@@ -22,13 +22,7 @@ jobs:
       - name: Install Dependencies
         run: |
           pip install --upgrade pip
-
-          # test deps
-          pip install --upgrade pytest
-
-          # install numpyro from git bc the pypi release is too strict about jax
-          pip install git+https://github.com/pyro-ppl/numpyro
-          python setup.py develop
+          pip install -e .[test]
 
       - name: Run unit tests with Pytest
         run: pytest --verbose
