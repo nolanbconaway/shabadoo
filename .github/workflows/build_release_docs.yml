@@ -16,11 +16,7 @@ jobs:
       - name: Install Dependencies
         run: |
           pip install --upgrade pip
-          pip install sphinx~=2.4.4 m2r numpydoc --upgrade
-
-          # install numpyro from git bc the pypi release is too strict about jax
-          pip install git+https://github.com/pyro-ppl/numpyro
-          python setup.py develop
+          pip install -e .[docs]
 
       - name: Build docs
         run: sphinx-build docs build

@@ -20,11 +20,7 @@ jobs:
       - name: Install Dependencies
         run: |
           pip install --upgrade pip
-          pip install --upgrade black pytest pytest-cov codecov
-
-          # install numpyro from git bc the pypi release is too strict about jax
-          pip install git+https://github.com/pyro-ppl/numpyro
-          python setup.py develop
+          pip install -e .[test]
 
       - name: Lint with Black
         run: black . --check --verbose
