@@ -36,7 +36,7 @@ setup(
     packages=find_packages("src"),
     install_requires=[INSTALL_REQUIRES],
     extras_require=dict(
-        test=["black", "pytest", "pytest-cov", "codecov",],
+        test=["black", "pytest", "pytest-cov", "codecov", "tox"],
         docs=["sphinx~=2.4.4", "m2r", "numpydoc"],
     ),
     package_data={"shabadoo": ["version"]},

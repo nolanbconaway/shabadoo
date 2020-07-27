@@ -18,6 +18,14 @@ Shabadoo is for people who want to do Bayesian regression but who do not want to
 
 Shabadoo runs on [numpyro](http://num.pyro.ai/) and is basically a wrapper around the [numpyro Bayesian regression tutorial](https://pyro.ai/numpyro/bayesian_regression.html).
 
+- [Quickstart](#quickstart)
+  - [Install](#install)
+  - [Specifying a Shabadoo Bayesian model](#specifying-a-shabadoo-bayesian-model)
+  - [Fitting & predicting the model](#fitting--predicting-the-model)
+  - [Inspecting the model](#inspecting-the-model)
+  - [Saving and recovering a saved model](#saving-and-recovering-a-saved-model)
+- [Development](#development)
+
 ## Quickstart
 
 ### Install
@@ -214,4 +222,20 @@ model_recovered = Model.from_dict(json.loads(model_json))
 # check the predictions are the same
 model_recovered.predict(df).equals(model.predict(df))
 True
+```
+
+## Development
+
+To get a development installation going, set up a python 3.6 or 3.7 virtualenv however you'd like and set up an editable installation of Shabadoo like so:
+
+```sh
+$ git clone https://github.com/nolanbconaway/shabadoo.git 
+$ cd shabadoo
+$ pip install -e .[test]
+```
+
+You should be able to run the full test suite via:
+
+```sh
+$ tox -e py36  # or py37 if thats what you installed
 ```
