@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2] - 2020-07-26
+
+Another bugfix release, no changes to the API. Numpyro's dependencies have not stablized yet so I am pinning to a specific commit (the latest one at the time I pinned it).
+
+- Continued Fixes #12: reduce hackyness of the numpyro/jax installation step in CI.
+
 ## [0.1.1] - 2020-05-16
 
 A bugfix release, no changes to the API. Users with older versions of jax/jaxlib may 
