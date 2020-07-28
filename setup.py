@@ -8,8 +8,7 @@ THIS_DIRECTORY = Path(__file__).resolve().parent
 
 
 INSTALL_REQUIRES = [
-    # wait until numpyro makes a new release with stable deps.
-    "numpyro @ git+https://github.com/pyro-ppl/numpyro.git@e7c74e76aead421748831d5d8ce3f9b6d15df33e",
+    "numpyro==0.3.0",
     "pandas>=1.0.0,<2.0.0",  # ok w/ any 1.x pandas
 ]
 
