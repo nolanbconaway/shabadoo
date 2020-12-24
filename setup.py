@@ -8,7 +8,7 @@ THIS_DIRECTORY = Path(__file__).resolve().parent
 
 
 INSTALL_REQUIRES = [
-    "numpyro==0.3.0",
+    "numpyro~=0.4.0",
     "pandas>=1.0.0,<2.0.0",  # ok w/ any 1.x pandas
 ]
 
@@ -28,6 +28,7 @@ setup(
     classifiers=[
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
     ],
     keywords=["bayesian", "regression", "mcmc"],
     license="MIT",
