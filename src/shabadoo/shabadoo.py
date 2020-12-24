@@ -47,6 +47,11 @@ def require_fitted(f):
     return wrapper
 
 
+def columns_with_null_data(df: pd.DataFrame) -> typing.List[str]:
+    """Return a list of columns names that have any null data."""
+    return pd.isnull(df).any(axis=0).loc[lambda x: x].index.values.tolist()
+
+
 def metrics(y: pd.Series, yhat: pd.Series) -> typing.Dict[str, float]:
     """Return general fit metrics of one series against another."""
     res = dict()
@@ -244,6 +249,11 @@ class BaseModel(ABC):
         # store fit df
         self.df = df
 
+        # check for nulls
+        null_cols = columns_with_null_data(self.transform(df))
+        if null_cols:
+            raise exceptions.NullDataFound(*null_cols)
+
         # set up mcmc
         _mcmc_kwargs = dict(num_warmup=500, num_samples=1000)
         _mcmc_kwargs.update(mcmc_kwargs)
@@ -296,10 +306,15 @@ class BaseModel(ABC):
         if not callable(aggfunc):
             aggfunc = getattr(onp, aggfunc)
 
+        transformed = self.transform(df)
+
+        # check for nulls
+        null_cols = columns_with_null_data(transformed)
+        if null_cols:
+            raise exceptions.NullDataFound(*null_cols)
+
         # matmul inputs * coefs, then send through link
-        predictions = self.link(
-            self.transform(df).values @ self.samples_df.transpose().values
-        )
+        predictions = self.link(transformed.values @ self.samples_df.transpose().values)
         yhat = aggfunc(predictions, axis=1)
 
         if not ci:
@@ -344,6 +359,11 @@ class BaseModel(ABC):
         rng_key_ = (
             self.split_rand_key() if rng_key is None else rng_key.astype("uint32")
         )
+
+        # check for nulls
+        null_cols = columns_with_null_data(self.transform(df))
+        if null_cols:
+            raise exceptions.NullDataFound(*null_cols)
 
         #  do it
         predictions = infer.Predictive(self.model, self.samples_flat)(rng_key_, df=df)[

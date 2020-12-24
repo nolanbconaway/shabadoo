@@ -112,6 +112,37 @@ def test_no_feature_exception():
     assert "features" in str(e.value)
 
 
+def test_null_data_exception():
+    """Test the exception when features have null data."""
+
+    class Model(Normal):
+        dv = "y"
+        features = dict(
+            nonull=dict(transformer=lambda x: x.x.fillna(0), prior=dist.Normal(0, 5)),
+            yesnull=dict(transformer=lambda x: x.x, prior=dist.Normal(0, 5)),
+        )
+
+    df_yes_nulls = pd.DataFrame(dict(x=[1, 2, 3, 4, None], y=[1, 2, 3, 2, 2]))
+    df_no_nulls = pd.DataFrame(dict(x=[1, 2, 3, 4, 0], y=[1, 2, 3, 2, 2]))
+
+    with pytest.raises(exceptions.NullDataFound) as e:
+        Model().fit(df_yes_nulls)
+
+    assert "yesnull" in str(e.value)
+
+    # if somehow it were fit...
+    model = Model().from_dict(
+        {"samples": {"nonull": [[1.0]], "yesnull": [[1.0]], "_sigma": [[0.0]]}}
+    )
+    with pytest.raises(exceptions.NullDataFound) as e:
+        model.predict(df_yes_nulls)
+
+    with pytest.raises(exceptions.NullDataFound) as e:
+        model.sample_posterior_predictive(df_yes_nulls)
+
+    assert "yesnull" in str(e.value)
+
+
 def test_no_dv_exception():
     """Test the exception when dv is not defined."""
 
