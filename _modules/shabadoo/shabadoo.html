@@ -97,6 +97,11 @@
     <span class="k">return</span> <span class="n">wrapper</span>
 
 
+<span class="k">def</span> <span class="nf">columns_with_null_data</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;Return a list of columns names that have any null data.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">isnull</span><span class="p">(</span><span class="n">df</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+
 <span class="k">def</span> <span class="nf">metrics</span><span class="p">(</span><span class="n">y</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">yhat</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
     <span class="sd">&quot;&quot;&quot;Return general fit metrics of one series against another.&quot;&quot;&quot;</span>
     <span class="n">res</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
@@ -220,22 +225,15 @@
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">inputs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
-        <span class="n">coefs</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="n">feature_name</span><span class="p">:</span> <span class="n">numpyro</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">feature_name</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;prior&quot;</span><span class="p">])</span>
-            <span class="k">for</span> <span class="n">feature_name</span><span class="p">,</span> <span class="n">data</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">features</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
-        <span class="p">}</span>
-
-        <span class="c1"># before the link function</span>
-        <span class="n">_yhat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span>
+        <span class="n">coefs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
             <span class="p">[</span>
-                <span class="n">inputs</span><span class="p">[</span><span class="n">feature_name</span><span class="p">]</span><span class="o">.</span><span class="n">values</span> <span class="o">*</span> <span class="n">coefs</span><span class="p">[</span><span class="n">feature_name</span><span class="p">]</span>
-                <span class="k">for</span> <span class="n">feature_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">features</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
-            <span class="p">],</span>
-            <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                <span class="n">numpyro</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;prior&quot;</span><span class="p">])</span>
+                <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">data</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">features</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="p">]</span>
         <span class="p">)</span>
 
         <span class="c1"># apply link</span>
-        <span class="n">yhat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">link</span><span class="p">(</span><span class="n">_yhat</span><span class="p">)</span>
+        <span class="n">yhat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">link</span><span class="p">(</span><span class="n">inputs</span><span class="o">.</span><span class="n">values</span> <span class="o">@</span> <span class="n">coefs</span><span class="p">)</span>
 
         <span class="c1"># we should never see an unfitted model being run without the dv</span>
         <span class="c1"># as the dv should always be present for fitting</span>
@@ -294,6 +292,11 @@
         <span class="c1"># store fit df</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">df</span> <span class="o">=</span> <span class="n">df</span>
 
+        <span class="c1"># check for nulls</span>
+        <span class="n">null_cols</span> <span class="o">=</span> <span class="n">columns_with_null_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">df</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">null_cols</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">NullDataFound</span><span class="p">(</span><span class="o">*</span><span class="n">null_cols</span><span class="p">)</span>
+
         <span class="c1"># set up mcmc</span>
         <span class="n">_mcmc_kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">num_warmup</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">num_samples</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
         <span class="n">_mcmc_kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">mcmc_kwargs</span><span class="p">)</span>
@@ -346,10 +349,15 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">callable</span><span class="p">(</span><span class="n">aggfunc</span><span class="p">):</span>
             <span class="n">aggfunc</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">onp</span><span class="p">,</span> <span class="n">aggfunc</span><span class="p">)</span>
 
+        <span class="n">transformed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+
+        <span class="c1"># check for nulls</span>
+        <span class="n">null_cols</span> <span class="o">=</span> <span class="n">columns_with_null_data</span><span class="p">(</span><span class="n">transformed</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">null_cols</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">NullDataFound</span><span class="p">(</span><span class="o">*</span><span class="n">null_cols</span><span class="p">)</span>
+
         <span class="c1"># matmul inputs * coefs, then send through link</span>
-        <span class="n">predictions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">link</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">df</span><span class="p">)</span><span class="o">.</span><span class="n">values</span> <span class="o">@</span> <span class="bp">self</span><span class="o">.</span><span class="n">samples_df</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span><span class="o">.</span><span class="n">values</span>
-        <span class="p">)</span>
+        <span class="n">predictions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">link</span><span class="p">(</span><span class="n">transformed</span><span class="o">.</span><span class="n">values</span> <span class="o">@</span> <span class="bp">self</span><span class="o">.</span><span class="n">samples_df</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
         <span class="n">yhat</span> <span class="o">=</span> <span class="n">aggfunc</span><span class="p">(</span><span class="n">predictions</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">ci</span><span class="p">:</span>
@@ -395,6 +403,11 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">split_rand_key</span><span class="p">()</span> <span class="k">if</span> <span class="n">rng_key</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">rng_key</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;uint32&quot;</span><span class="p">)</span>
         <span class="p">)</span>
 
+        <span class="c1"># check for nulls</span>
+        <span class="n">null_cols</span> <span class="o">=</span> <span class="n">columns_with_null_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">df</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">null_cols</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">NullDataFound</span><span class="p">(</span><span class="o">*</span><span class="n">null_cols</span><span class="p">)</span>
+
         <span class="c1">#  do it</span>
         <span class="n">predictions</span> <span class="o">=</span> <span class="n">infer</span><span class="o">.</span><span class="n">Predictive</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">samples_flat</span><span class="p">)(</span><span class="n">rng_key_</span><span class="p">,</span> <span class="n">df</span><span class="o">=</span><span class="n">df</span><span class="p">)[</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">dv</span>
@@ -423,7 +436,7 @@
 <span class="sd">        chains.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">k</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">features</span><span class="o">.</span><span class="fm">__iter__</span><span class="p">())</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">samples</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">samples</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
 
     <span class="nd">@property</span>
     <span class="nd">@require_fitted</span>
