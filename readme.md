@@ -1,5 +1,16 @@
 # Shabadoo: very easy Bayesian regression.
 
+## DEV BRANCH
+
+This is a branch i had under development for a long time.  Among other things, it:
+
+1. implements frequency domain seasonality configurations. I still need to write tests of seasonality serialization/deserialization. Probably also sanity tests of actual fitting, predicting.
+2. Starts to implement a notebook-based test. I wanted to include some sample notebooks in the docs and _also_ render them as a form of testing in a "real world" scenario. I wrote the notebooks but did not figure out how to get them in the docs.
+  
+Both goals are large, took a long time to get to where they are, and are both incomplete. I have largely given up on numpyro given the advances in pymc3-running-on-jax. So I do not intend on implementing these items any time soon.
+
+## Back to the readme...
+
 >![Imgur](https://i.imgur.com/yScWnEt.jpg)
 >
 > "That's the worst name I ever heard."
@@ -18,6 +29,8 @@ Shabadoo is for people who want to do Bayesian regression but who do not want to
 
 Shabadoo runs on [numpyro](http://num.pyro.ai/) and is basically a wrapper around the [numpyro Bayesian regression tutorial](https://pyro.ai/numpyro/bayesian_regression.html).
 
+- [DEV BRANCH](#dev-branch)
+- [Back to the readme...](#back-to-the-readme)
 - [Quickstart](#quickstart)
   - [Install](#install)
   - [Specifying a Shabadoo Bayesian model](#specifying-a-shabadoo-bayesian-model)

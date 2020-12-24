@@ -46,6 +46,22 @@ class IncompleteFeature(ShabadooException):
         self.message = f"Feature `{name}` does not have a {key}!"
 
 
+class DuplicateFeature(ShabadooException):
+    """Raised when initializing a model with an duplicate feature."""
+
+    def __init__(self, name):
+        """Set the message."""
+        self.message = f"Feature `{name}` is defined twice!"
+
+
+class NullDataFound(ShabadooException):
+    """Raised when initializing fitting / predicting null data."""
+
+    def __init__(self, *names):
+        """Set the message."""
+        self.message = f"Null values found in: {', '.join(names)}."
+
+
 class IncompleteSamples(ShabadooException):
     """Raised a model has incomplete samples for some reason."""
 

@@ -3,10 +3,11 @@ import json
 
 import jax.numpy as np
 import numpy as onp
+import pandas as pd
 import pytest
 
 import shabadoo
-from shabadoo.shabadoo import NumpyEncoder, metrics
+from shabadoo.shabadoo import NumpyEncoder, metrics, fourier_series
 
 
 def test_metrics():
@@ -39,7 +40,18 @@ def test_version():
     ],
 )
 def test_json_encoder(data):
-    """Test that the version file is included."""
+    """Test that numpy data are correctly serialized and deserialized."""
     result = json.dumps(data, cls=NumpyEncoder)
-    decoded = np.array(json.loads(result))
     assert onp.array_equal(onp.array(json.loads(result)), onp.array(data))
+
+
+@pytest.mark.parametrize("series_order", range(4, 7))
+@pytest.mark.parametrize("n_days", range(10, 13))
+def test_fourier_series_shape(n_days, series_order):
+    """Test that the version file is included."""
+    period = 7
+    days = pd.date_range("2020-01-01", periods=n_days)
+    result = fourier_series(days, period, series_order)
+    assert result.shape[0] == n_days
+    assert result.shape[1] == series_order * 2
+

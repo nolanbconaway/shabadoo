@@ -4,7 +4,6 @@
 .tox
 .vscode
 *.egg-info
-dev.ipynb
 .ipynb_checkpoints
 *.pyc
 build/

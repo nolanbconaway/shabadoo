@@ -48,6 +48,42 @@ def test_single_coef_is_about_right():
     assert abs(avg_x_coef - 2) < 0.1
 
 
+def test_seasonality_fitting():
+    """Test that seasonality for a a simple model is fitted as expected."""
+    # fit an obvious four day cycle.
+    pattern = [0.0, 1.0, 0.0, -1.0]
+    df = pd.DataFrame(dict(y=pattern * 100)).assign(
+        ds=lambda x: pd.date_range("2020-01-01", periods=x.shape[0])
+    )
+    num_chains = 2
+    num_warmup = 10
+    num_samples = 20
+
+    class Model(Normal):
+        dv = "y"
+        seasonality = dict(pattern=dict(period=4, series_order=3))
+
+    model = Model().fit(
+        df,
+        num_chains=num_chains,
+        num_warmup=num_warmup,
+        num_samples=num_samples,
+        progress_bar=False,
+        rng_key=onp.array([0, 0]),
+    )
+
+    assert model.num_samples == num_chains * num_samples
+    assert model.num_chains == num_chains
+    assert (
+        model.samples["pattern"].shape[2]
+        == Model.seasonality["pattern"]["series_order"] * 2
+    )
+    assert (
+        model.samples_flat["pattern"].shape[1]
+        == Model.seasonality["pattern"]["series_order"] * 2
+    )
+
+
 @pytest.mark.parametrize("samples_per_chain", [10, 20, 100, 1000])
 @pytest.mark.parametrize("chains", range(1, 3))
 def test_samples_df(samples_per_chain, chains):
@@ -99,106 +135,6 @@ def test_rand_key_splitter():
     assert subkeys.shape[0] == 2
 
 
-def test_no_feature_exception():
-    """Test the exception when features are not defined."""
-
-    class NoFeatsModel(Normal):
-        dv = "y"
-
-    with pytest.raises(exceptions.IncompleteModel) as e:
-        NoFeatsModel()
-
-    assert "NoFeatsModel" in str(e.value)
-    assert "features" in str(e.value)
-
-
-def test_no_dv_exception():
-    """Test the exception when dv is not defined."""
-
-    class NoDVModel(Normal):
-        features = dict(x=dict(transformer=1, prior=dist.Normal(0, 1)))
-
-    with pytest.raises(exceptions.IncompleteModel) as e:
-        NoDVModel()
-
-    assert "NoDVModel" in str(e.value)
-    assert "dv" in str(e.value)
-
-
-def test_require_fitted_exception():
-    """Test exception is raised if trying to call a required method before fitting."""
-
-    class Model(Normal):
-        dv = "y"
-        features = dict(x=dict(transformer=1, prior=dist.Normal(0, 1)))
-
-    with pytest.raises(exceptions.NotFittedError) as e:
-        Model().formula
-
-    assert "formula" in str(e.value)
-
-
-def test_refit_exception():
-    """Test the exception raised when re-fitting."""
-    df = pd.DataFrame(dict(x=[1.0, 2.0, 3.0, 4.0], y=1))
-
-    class PreFitModel(Normal):
-        dv = "y"
-        features = dict(x=dict(transformer=lambda x: x.x, prior=dist.Normal(0, 1)))
-
-    model = PreFitModel().from_dict({"samples": {"x": [[1.0]], "_sigma": [[0.0]]}})
-
-    with pytest.raises(exceptions.AlreadyFittedError) as e:
-        model.fit(df)
-
-    assert "PreFitModel" in str(e.value)
-
-
-def test_invalid_sampler_exception():
-    """Test the exception raised when specifying an invalid sampler."""
-    df = pd.DataFrame(dict(x=[1.0, 2.0, 3.0, 4.0], y=1))
-
-    class Model(Normal):
-        dv = "y"
-        features = dict(x=dict(transformer=lambda x: x.x, prior=dist.Normal(0, 1)))
-
-    with pytest.raises(ValueError):
-        Model().fit(df, sampler="INVALID")
-
-
-def test_missing_samples_exception():
-    """Test the exception when creating a model from samples without a known key."""
-    df = pd.DataFrame(dict(x=[1.0, 2.0, 3.0, 4.0], y=1))
-
-    class Model(Normal):
-        dv = "y"
-        features = dict(x=dict(transformer=lambda x: x.x, prior=dist.Normal(0, 1)))
-
-    with pytest.raises(exceptions.IncompleteSamples) as e:
-        Model().from_dict({"samples": {"_sigma": [[0]]}})
-
-    assert "x" in str(e.value)
-
-    with pytest.raises(exceptions.IncompleteSamples) as e:
-        Model().from_dict({"samples": {"x": [[0]]}})
-
-    assert "_sigma" in str(e.value)
-
-
-def test_incomplete_feature_exception():
-    """Test the exception when a feature is missing a key."""
-
-    class Model(Normal):
-        dv = "y"
-        features = dict(x=dict(transformer=1))
-
-    with pytest.raises(exceptions.IncompleteFeature) as e:
-        Model()
-
-    assert "x" in str(e.value)
-    assert "prior" in str(e.value)
-
-
 def test_transform():
     """Test the transform method returns the expected dataframe."""
 
@@ -212,6 +148,26 @@ def test_transform():
     df = pd.DataFrame(dict(x=[1, 2, 3], y=1))
     expected = pd.DataFrame(dict(one=1, x_sq=[1, 4, 9]))
     assert Model.transform(df).equals(expected)
+
+
+def test_transform_seasonality():
+    """Test that the transformed seasonality inputs are as expected."""
+
+    class Model(Normal):
+        dv = "y"
+        features = dict(one=dict(transformer=1, prior=dist.Normal(0, 1)))
+        seasonality = dict(s1=dict(series_order=3, period=7))
+
+    df = pd.DataFrame(dict(ds=pd.date_range("2020-01-01", "2020-01-08")))
+    season = Model.transform_seasonality(df)["s1"]
+
+    # given a 7 day period, the first and last rows should have the same values
+    # the first and second rows should not.
+    first_row = season[0, :]
+    second_row = season[1, :]
+    last_row = season[-1, :]
+    assert np.array_equal(first_row, last_row)
+    assert not np.array_equal(first_row, second_row)
 
 
 def test_sample_posterior_predictive():

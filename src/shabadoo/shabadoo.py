@@ -35,6 +35,44 @@ class NumpyEncoder(json.JSONEncoder):
             return super(NumpyEncoder, self).default(obj)
 
 
+def fourier_series(dates: pd.Series, period: float, series_order: int) -> onp.ndarray:
+    """Provide Fourier series components with the specified frequency and order.
+
+    Mostly a copy from facebook's prophet library. Thanks zuck :-).
+    
+    Parameters
+    ----------
+    dates : Series
+        pd.Series containing timestamps.
+    period : int
+        Number of days in the period. 
+    series_order : int
+        Number of components.
+
+    Returns
+    -------
+    np.ndarray
+        A matrix of seasonality features. It will have one row per record in `dates`,
+        and `2 * series_order` columns.
+        
+    """
+    # coerce timedelta / index to series
+    dates = pd.Series(dates)
+
+    # convert to days since epoch
+    epoch_days = (
+        dates - pd.Timestamp("1970-01-01 00:00:00")
+    ).dt.total_seconds().values / (3600 * 24)
+
+    return onp.column_stack(
+        [
+            fun((2.0 * (i + 1) * onp.pi * epoch_days / period))
+            for i in range(series_order)
+            for fun in (onp.sin, onp.cos)
+        ]
+    )
+
+
 def require_fitted(f):
     """Decorate a function to require the model to be fitted for usage."""
 
@@ -61,7 +99,18 @@ def metrics(y: pd.Series, yhat: pd.Series) -> typing.Dict[str, float]:
 class BaseModel(ABC):
     """Abstract base class from which all model families inherit."""
 
-    features: typing.Dict[str, typing.Dict[str, typing.Any]] = None
+    # expected keys: transformer=callable, prior=numpyro dist
+    features: typing.Dict[str, typing.Dict[str, typing.Any]] = dict()
+
+    # expected keys: series_order=int, period=float
+    # optionally, set col=str to specify the column containing timestamps,
+    # optionally, set prior=numpyro dist to specify the prior,
+    # if col is not set, `default_seasonality_col` is used. if prior is not set,
+    # normal(0, 1) is used.
+    seasonality: typing.Dict[str, typing.Any] = dict()
+
+    default_seasonality_col: str = "ds"  # follow prophets convention
+    default_seasonality_prior = dist.Normal(0, 1)  # follow prophets convention
     dv = None
 
     # wrap the linear combination if inputs {lc} in newlines and the link function
@@ -87,8 +136,8 @@ class BaseModel(ABC):
         
         Optionally set the rng seed.
         """
-        if not self.features:
-            raise exceptions.IncompleteModel(self, "features")
+        if not self.features and not self.seasonality:
+            raise exceptions.IncompleteModel(self, "features or seasonality")
 
         if not self.dv:
             raise exceptions.IncompleteModel(self, "dv")
@@ -97,6 +146,14 @@ class BaseModel(ABC):
             for key in ("transformer", "prior"):
                 if key not in feature:
                     raise exceptions.IncompleteFeature(name, key)
+
+        for name, season in self.seasonality.items():
+            for key in ("period", "series_order"):
+                if key not in season:
+                    raise exceptions.IncompleteFeature(name, key)
+
+        for duplicate in set(self.features).intersection(self.seasonality):
+            raise exceptions.DuplicateFeature(duplicate)
 
         # this will be split each time randomness is needed.
         self.rand_key = random.PRNGKey(
@@ -160,6 +217,22 @@ class BaseModel(ABC):
             }
         )[cls.features.keys()]
 
+    @classmethod
+    def transform_seasonality(cls, df: pd.DataFrame) -> typing.Dict[str, onp.ndarray]:
+        """Create matricies of seasonality inputs.
+        
+        Returns a dictionary with one key per seasonality defined in the model's config.
+        The value is a matrix which is the result of the fourier series.
+        """
+        return {
+            name: fourier_series(
+                df[season.get("col", cls.default_seasonality_col)],
+                period=season["period"],
+                series_order=season["series_order"],
+            )
+            for name, season in cls.seasonality.items()
+        }
+
     def model(self, df: pd.DataFrame):
         """Define and return samples from the model.
         
@@ -169,20 +242,40 @@ class BaseModel(ABC):
             Input data for the model.
 
         """
-        inputs = self.transform(df)
-        coefs = {
-            feature_name: numpyro.sample(feature_name, data["prior"])
-            for feature_name, data in self.features.items()
-        }
+        # init the predictions as a vector of 0s. add to it later.
+        _yhat = np.zeros(shape=(df.shape[0],))
+        # add inputs @ coefs if any regular features
+        if self.features:
+            inputs = self.transform(df)
+            coefs = np.array(
+                [
+                    numpyro.sample(name, data["prior"])
+                    for name, data in self.features.items()
+                ]
+            )
+            _yhat += inputs.values @ coefs
 
-        # before the link function
-        _yhat = np.sum(
-            [
-                inputs[feature_name].values * coefs[feature_name]
-                for feature_name in self.features.keys()
-            ],
-            axis=0,
-        )
+        # add seasonality if defined
+        if self.seasonality:
+            seasonality_inputs = self.transform_seasonality(df)
+            seasonality_coefs = {
+                name: numpyro.sample(
+                    name,
+                    season.get("prior", self.default_seasonality_prior),
+                    sample_shape=(season["series_order"] * 2,),
+                )
+                for name, season in self.seasonality.items()
+            }
+
+            _yhat += np.sum(
+                np.array(
+                    [
+                        seasonality_inputs[name] @ seasonality_coefs[name]
+                        for name in self.seasonality.keys()
+                    ]
+                ),
+                axis=0,
+            )
 
         # apply link
         yhat = self.link(_yhat)
@@ -296,10 +389,28 @@ class BaseModel(ABC):
         if not callable(aggfunc):
             aggfunc = getattr(onp, aggfunc)
 
-        # matmul inputs * coefs, then send through link
-        predictions = self.link(
-            self.transform(df).values @ self.samples_df.transpose().values
+        # call this once to save on reshapes etc.
+        samples_flat = self.samples_flat
+
+        # matmul inputs * coefs for regular features
+        linear_combo = self.transform(df).values @ onp.vstack(
+            [samples_flat[k] for k in self.features.keys()]
         )
+
+        # add seasonality if defined
+        if self.seasonality:
+            seasonality_inputs = self.transform_seasonality(df)
+            for name in self.seasonality.keys():
+                linear_combo += np.sum(
+                    # broadcast input x order x 1 inputs matrix against
+                    # 1 x order x sample coefficients matrix, then sum over orders
+                    # for an input x sample matrix
+                    seasonality_inputs[name][:, :, np.newaxis]
+                    * samples_flat[name].transpose()[np.newaxis, :, :],
+                    axis=1,
+                )
+
+        predictions = self.link(linear_combo)
         yhat = aggfunc(predictions, axis=1)
 
         if not ci:
@@ -372,8 +483,8 @@ class BaseModel(ABC):
         Assumes samples from all variables have same shape. Counts samples across all
         chains.
         """
-        k = next(self.features.__iter__())
-        return np.prod(self.samples[k].shape)
+        k = next((self.features or self.seasonality).__iter__())
+        return np.prod(np.array(self.samples[k].shape[0:2]))
 
     @property
     @require_fitted
@@ -382,19 +493,31 @@ class BaseModel(ABC):
         
         Assumes samples from all variables have same shape.
         """
-        k = next(self.features.__iter__())
+        k = next((self.features or self.seasonality).__iter__())
         return self.samples[k].shape[0]
 
     @property
     @require_fitted
     def samples_flat(self):
         """Provide a 1D view of the model's samples."""
-        return {k: v.flatten() for k, v in self.samples.items()}
+        features = {
+            k: v.flatten() for k, v in self.samples.items() if k in self.features
+        }
+
+        # chain * sample, series order matrices
+        matrix_seasons = {
+            k: v.reshape(v.shape[0] * v.shape[1], v.shape[2])
+            for k, v in self.samples.items()
+            if k in self.seasonality
+        }
+
+        return dict(**features, **matrix_seasons)
 
     @property
     @require_fitted
     def samples_df(self) -> pd.DataFrame:
         """Return a DataFrame of the model's MCMC samples."""
+        # make an index
         num_chains, num_samples = self.num_chains, self.num_samples
         samples_per_chain = num_samples / num_chains
         index = pd.MultiIndex.from_product(
@@ -404,7 +527,23 @@ class BaseModel(ABC):
             ],
             names=["chain", "sample"],
         )
-        return pd.DataFrame(self.samples_flat, index=index)[self.features.keys()]
+
+        # split up seasonalities into columns
+        # chain-sample x 1 vectors with names like 'season__number'
+        seasons_splitted = {
+            k + f"__{c}": m[:, c]
+            for k, m in self.samples_flat.items()
+            if k in self.seasonality
+            for c in range(m.shape[1])
+        }
+
+        return pd.DataFrame(
+            dict(
+                **{k: v for k, v in self.samples_flat.items() if k in self.features},
+                **seasons_splitted,
+            ),
+            index=index,
+        )
 
     @classmethod
     def from_dict(cls, data: typing.Dict[str, typing.Any], **model_kw):

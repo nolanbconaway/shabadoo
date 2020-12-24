@@ -37,6 +37,7 @@ setup(
     extras_require=dict(
         test=["black", "pytest", "pytest-cov", "codecov", "tox"],
         docs=["sphinx~=2.4.4", "m2r", "numpydoc"],
+        notebook=["jupyter", "matplotlib"],
     ),
     package_data={"shabadoo": ["version"]},
 )
