@@ -175,22 +175,15 @@ class BaseModel(ABC):
 
         """
         inputs = self.transform(df)
-        coefs = {
-            feature_name: numpyro.sample(feature_name, data["prior"])
-            for feature_name, data in self.features.items()
-        }
-
-        # before the link function
-        _yhat = np.sum(
+        coefs = np.array(
             [
-                inputs[feature_name].values * coefs[feature_name]
-                for feature_name in self.features.keys()
-            ],
-            axis=0,
+                numpyro.sample(name, data["prior"])
+                for name, data in self.features.items()
+            ]
         )
 
         # apply link
-        yhat = self.link(_yhat)
+        yhat = self.link(inputs.values @ coefs)
 
         # we should never see an unfitted model being run without the dv
         # as the dv should always be present for fitting
@@ -393,7 +386,7 @@ class BaseModel(ABC):
         chains.
         """
         k = next(self.features.__iter__())
-        return np.prod(self.samples[k].shape)
+        return np.prod(np.array(self.samples[k].shape))
 
     @property
     @require_fitted
