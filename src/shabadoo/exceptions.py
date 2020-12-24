@@ -52,3 +52,11 @@ class IncompleteSamples(ShabadooException):
     def __init__(self, name):
         """Set the message."""
         self.message = f"No or not enough samples found for `{name}`."
+
+
+class NullDataFound(ShabadooException):
+    """Raised when passing null data to fit/predict."""
+
+    def __init__(self, *names):
+        """Set the message."""
+        self.message = f"Null data detected in features: {', '.join(names)}."

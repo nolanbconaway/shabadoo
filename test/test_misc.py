@@ -4,9 +4,9 @@ import json
 import jax.numpy as np
 import numpy as onp
 import pytest
-
+import pandas as pd
 import shabadoo
-from shabadoo.shabadoo import NumpyEncoder, metrics
+from shabadoo.shabadoo import NumpyEncoder, metrics, columns_with_null_data
 
 
 def test_metrics():
@@ -43,3 +43,13 @@ def test_json_encoder(data):
     result = json.dumps(data, cls=NumpyEncoder)
     decoded = np.array(json.loads(result))
     assert onp.array_equal(onp.array(json.loads(result)), onp.array(data))
+
+
+@pytest.mark.parametrize("nullval", [None, np.nan, onp.nan, pd.NA, pd.NaT])
+def test_columns_with_null_data(nullval):
+    """Test that the null data detector works as expected."""
+    df_yes_nulls = pd.DataFrame(dict(x=[1, 2, 3, 4, nullval], y=[1, 2, 3, 2, 2]))
+    df_no_nulls = pd.DataFrame(dict(x=[1, 2, 3, 4, 0], y=[1, 2, 3, 2, 2]))
+
+    assert not columns_with_null_data(df_no_nulls)
+    assert columns_with_null_data(df_yes_nulls) == ["x"]
